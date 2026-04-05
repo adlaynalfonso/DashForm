@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!--
+    Maskable icon: safe zone is the inner 80% (40px padding on a 512px canvas = ~41px each side).
+    All meaningful content kept inside a ~430x430 centered area.
+  -->
+  <!-- Full bleed background — required for maskable -->
+  <rect width="512" height="512" fill="#3b82f6"/>
+  <!-- Document (safe zone) -->
+  <rect x="166" y="126" width="180" height="232" rx="16" fill="white" opacity="0.15"/>
+  <rect x="176" y="136" width="180" height="232" rx="16" fill="white"/>
+  <!-- Lines -->
+  <rect x="200" y="184" width="88" height="9" rx="4.5" fill="#3b82f6" opacity="0.5"/>
+  <rect x="200" y="208" width="128" height="9" rx="4.5" fill="#3b82f6" opacity="0.3"/>
+  <rect x="200" y="232" width="116" height="9" rx="4.5" fill="#3b82f6" opacity="0.3"/>
+  <rect x="200" y="256" width="104" height="9" rx="4.5" fill="#3b82f6" opacity="0.3"/>
+  <!-- Accent bar -->
+  <rect x="176" y="136" width="7" height="232" rx="3.5" fill="#2563eb"/>
+  <!-- DC label -->
+  <text x="256" y="404" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="52" fill="white" letter-spacing="5">DC</text>
+</svg>

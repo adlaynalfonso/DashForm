@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- Viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Primary meta -->
+    <title>DashForm Filler</title>
+    <meta name="description" content="Rellena y exporta formularios DashForm sin conexión" />
+
+    <!-- Theme color (matches manifest + Tailwind emerald-500) -->
+    <meta name="theme-color" content="#10b981" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Apple touch icon — iOS uses this for the home screen shortcut.
+         SVG is supported on iOS 14.5+. For older devices a PNG is ideal. -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+
+    <!-- PWA / Add to Home Screen -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Filler" />
+
+    <!-- Open Graph (for share previews) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="DashForm Filler" />
+    <meta property="og:description" content="Rellena y exporta formularios DashForm sin conexión" />
+    <meta property="og:image" content="/icon-512.svg" />
+
+    <!-- Splash-screen background while the JS loads (matches background_color in manifest) -->
+    <style>
+      body { background: #ffffff; margin: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

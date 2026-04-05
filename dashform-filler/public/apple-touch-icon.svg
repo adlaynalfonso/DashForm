@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
+  <!-- iOS prefers a square with no transparency; rounded corners applied by the OS -->
+  <rect width="180" height="180" fill="#10b981"/>
+  <rect x="14" y="14" width="152" height="152" rx="26" fill="#059669"/>
+  <text
+    x="90"
+    y="97"
+    font-family="system-ui, -apple-system, sans-serif"
+    font-size="64"
+    font-weight="800"
+    fill="white"
+    text-anchor="middle"
+    dominant-baseline="central"
+    letter-spacing="-2"
+  >DF</text>
+  <circle cx="68" cy="138" r="5" fill="white" opacity="0.5"/>
+  <circle cx="82" cy="138" r="5" fill="white" opacity="0.5"/>
+  <circle cx="90" cy="138" r="5" fill="white" opacity="0.8"/>
+  <circle cx="98" cy="138" r="5" fill="white" opacity="0.5"/>
+  <circle cx="112" cy="138" r="5" fill="white" opacity="0.5"/>
+</svg>

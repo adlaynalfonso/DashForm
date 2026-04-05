@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(npx playwright:*)",
+      "Bash(node -e \"const pkg = require\\('./node_modules/react-camera-pro/package.json'\\); console.log\\(pkg.version, pkg.main, pkg.module, pkg.types\\)\")",
+      "Bash(node_modules/.bin/tsc --version)",
+      "Bash(python3 -c \"import sys,json; p=json.load\\(sys.stdin\\); print\\(p.get\\('version'\\), p.get\\('types'\\) or p.get\\('typings'\\)\\)\")",
+      "Bash(python3 -c \"import sys,json; p=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:v for k,v in p.items\\(\\) if k in ['main','module','browser','exports','types']}, indent=2\\)\\)\")",
+      "Bash(python3 -c \"import sys,json; p=json.load\\(sys.stdin\\); deps={**p.get\\('dependencies',{}\\), **p.get\\('devDependencies',{}\\)}; print\\('vite-plugin-pwa:', deps.get\\('vite-plugin-pwa','not found'\\)\\); print\\('workbox-window:', deps.get\\('workbox-window','not found'\\)\\)\")",
+      "Bash(python3 -c \"import sys,json; p=json.load\\(sys.stdin\\); print\\('version:', p.get\\('version'\\)\\); exp=p.get\\('exports',{}\\); [print\\(k,'->',v\\) for k,v in list\\(exp.items\\(\\)\\)[:20]]\")",
+      "Bash(ls /Users/claude_agent/Desktop/DashForm/dashform-filler/*.config.*)",
+      "Bash(npm test:*)",
+      "Bash(node -e \"const p = require\\(''/Users/claude_agent/Desktop/DashForm/dashform-filler/node_modules/@playwright/test/package.json''\\); console.log\\(p.version\\)\")"
+    ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  }
+}

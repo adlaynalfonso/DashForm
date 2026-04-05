@@ -1,0 +1,63 @@
+import type { Field } from '@/types/template'
+
+// ── Value formatter ───────────────────────────────────────────────────────────
+
+export function formatFieldValue(field: Field, value: unknown): string {
+  if (value === null || value === undefined || value === '') return '—'
+
+  switch (field.tipo) {
+    case 'checkbox':
+      return value ? 'Sí' : 'No'
+
+    case 'fecha': {
+      try {
+        return new Date(value as string).toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+        })
+      } catch {
+        return String(value)
+      }
+    }
+
+    // Signatures are rendered specially — return empty so callers check isBase64Signature
+    case 'firma-digital':
+    case 'firma-texto':
+      return ''
+
+    default:
+      return String(value)
+  }
+}
+
+// ── Type guards ───────────────────────────────────────────────────────────────
+
+/** True when the field holds a canvas-drawn signature (base64 PNG data URL). */
+export function isBase64Signature(field: Field, value: unknown): value is string {
+  return (
+    field.tipo === 'firma-digital' &&
+    typeof value === 'string' &&
+    value.startsWith('data:image/')
+  )
+}
+
+/** True when the field is a typed/text signature. */
+export function isTextSignature(field: Field): boolean {
+  return field.tipo === 'firma-texto'
+}
+
+/** True when the field needs full-column width (signatures, long text). */
+export function needsFullWidth(field: Field): boolean {
+  return field.tipo === 'firma-digital' || field.tipo === 'firma-texto' || field.tipo === 'texto-expandible'
+}
+
+// ── Date helper ───────────────────────────────────────────────────────────────
+
+export function todayLabel(): string {
+  return new Date().toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+}

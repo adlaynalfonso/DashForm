@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- Background -->
+  <rect width="192" height="192" rx="40" fill="#3b82f6"/>
+  <!-- Document shape -->
+  <rect x="52" y="38" width="76" height="96" rx="8" fill="white" opacity="0.15"/>
+  <rect x="58" y="44" width="76" height="96" rx="8" fill="white"/>
+  <!-- Lines on document -->
+  <rect x="70" y="66" width="40" height="4" rx="2" fill="#3b82f6" opacity="0.5"/>
+  <rect x="70" y="78" width="52" height="4" rx="2" fill="#3b82f6" opacity="0.35"/>
+  <rect x="70" y="90" width="48" height="4" rx="2" fill="#3b82f6" opacity="0.35"/>
+  <rect x="70" y="102" width="44" height="4" rx="2" fill="#3b82f6" opacity="0.35"/>
+  <!-- Letters DC -->
+  <text x="96" y="164" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="22" fill="white" letter-spacing="2">DC</text>
+</svg>

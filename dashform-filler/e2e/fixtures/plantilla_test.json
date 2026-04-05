@@ -1,0 +1,38 @@
+{
+  "type": "dashform-template",
+  "schemaVersion": 1,
+  "exportedAt": "2026-04-04T00:00:00.000Z",
+  "template": {
+    "id": "test-template-e2e-001",
+    "nombre": "Formulario de Prueba E2E",
+    "descripcion": "Plantilla para tests E2E automatizados",
+    "version": "1.0.0",
+    "schemaVersion": 1,
+    "pdfConfig": {
+      "template": "modern",
+      "colorTema": "#3b82f6"
+    },
+    "secciones": [
+      {
+        "id": "seccion-datos",
+        "nombre": "Datos Personales",
+        "campos": [
+          {
+            "id": "nombre",
+            "tipo": "texto",
+            "label": "Nombre completo",
+            "obligatorio": true,
+            "placeholder": "Ej. Ana García"
+          },
+          {
+            "id": "email",
+            "tipo": "email",
+            "label": "Correo electrónico",
+            "obligatorio": true,
+            "placeholder": "Ej. ana@ejemplo.com"
+          }
+        ]
+      }
+    ]
+  }
+}
