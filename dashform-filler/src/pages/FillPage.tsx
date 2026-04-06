@@ -32,6 +32,7 @@ export default function FillPage() {
     fechaCreacion,
     plantilla,
     datos,
+    estado,
     erroresValidacion,
     seccionActual,
     loading,
@@ -51,11 +52,11 @@ export default function FillPage() {
       schemaVersion: 1,
       plantilla,
       datos,
-      estado: 'borrador',
+      estado,
       fechaCreacion,
       fechaModificacion: new Date().toISOString(),
     }
-  }, [formId, plantilla, datos, fechaCreacion])
+  }, [formId, plantilla, datos, estado, fechaCreacion])
 
   const { status: saveStatus } = useAutoSave(autoSaveForm)
   const { exportar, error: exportError, clearError: clearExportError } = useExportEditable()

@@ -10,6 +10,9 @@ import { SelectField } from './fields/SelectField'
 import { DateField } from './fields/DateField'
 import { SignatureTextField } from './fields/SignatureTextField'
 import { SignatureField } from './fields/SignatureField'
+import { NumeroField } from './fields/NumeroField'
+import { TextoCheckboxField } from './fields/TextoCheckboxField'
+import { EncabezadoField } from './fields/EncabezadoField'
 
 interface Props {
   section: Section
@@ -102,6 +105,24 @@ export function FormRenderer({ section, datos, errores, dispatch }: Props) {
             return (
               <div key={field.id}>
                 <SignatureField {...commonProps} onChange={handleChange} />
+              </div>
+            )
+          case 'numero':
+            return (
+              <div key={field.id} onBlur={handleBlur}>
+                <NumeroField {...commonProps} onChange={handleChange as (v: number | '') => void} />
+              </div>
+            )
+          case 'texto-checkbox':
+            return (
+              <div key={field.id}>
+                <TextoCheckboxField {...commonProps} onChange={handleChange} />
+              </div>
+            )
+          case 'encabezado':
+            return (
+              <div key={field.id}>
+                <EncabezadoField field={field} />
               </div>
             )
         }

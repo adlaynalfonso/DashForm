@@ -13,6 +13,9 @@ import {
   Pen,
   Plus,
   Trash2,
+  Hash,
+  ListChecks,
+  Heading,
 } from 'lucide-react'
 import type { Field, FieldType, FieldValidation } from '@/types/template'
 
@@ -27,8 +30,11 @@ const FIELD_META: Record<FieldType, { label: string; icon: React.ReactNode; colo
   'radio':            { label: 'Opción única',   icon: <CircleDot className="h-4 w-4" />,   color: 'bg-orange-100 text-orange-600' },
   'select':           { label: 'Desplegable',    icon: <ChevronDown className="h-4 w-4" />, color: 'bg-orange-100 text-orange-600' },
   'fecha':            { label: 'Fecha',          icon: <Calendar className="h-4 w-4" />,    color: 'bg-cyan-100 text-cyan-600' },
-  'firma-digital':    { label: 'Firma digital',  icon: <Pen className="h-4 w-4" />,         color: 'bg-pink-100 text-pink-600' },
-  'firma-texto':      { label: 'Firma escrita',  icon: <PenLine className="h-4 w-4" />,     color: 'bg-pink-100 text-pink-600' },
+  'firma-digital':    { label: 'Firma digital',      icon: <Pen className="h-4 w-4" />,         color: 'bg-pink-100 text-pink-600' },
+  'firma-texto':      { label: 'Firma escrita',      icon: <PenLine className="h-4 w-4" />,     color: 'bg-pink-100 text-pink-600' },
+  'numero':           { label: 'Número',             icon: <Hash className="h-4 w-4" />,        color: 'bg-emerald-100 text-emerald-600' },
+  'texto-checkbox':   { label: 'Texto + Checkbox',   icon: <ListChecks className="h-4 w-4" />,  color: 'bg-orange-100 text-orange-600' },
+  'encabezado':       { label: 'Encabezado',         icon: <Heading className="h-4 w-4" />,     color: 'bg-purple-100 text-purple-600' },
 }
 
 const TEXT_TYPES: FieldType[] = ['texto', 'texto-expandible', 'email', 'telefono']
@@ -148,6 +154,8 @@ export function FieldConfigurator({
   const meta = FIELD_META[field.tipo]
   const hasTextValidation = TEXT_TYPES.includes(field.tipo)
   const hasOptions = OPTION_TYPES.includes(field.tipo)
+  const isEncabezado = field.tipo === 'encabezado'
+  const isNumero = field.tipo === 'numero'
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -198,40 +206,112 @@ export function FieldConfigurator({
                 />
               </InputRow>
 
-              <InputRow label="Placeholder">
-                <input
-                  className={inputCls}
-                  value={field.placeholder ?? ''}
-                  onChange={(e) =>
-                    patch({ placeholder: e.target.value || undefined })
-                  }
-                  placeholder="Texto de ayuda dentro del campo"
-                />
-              </InputRow>
-
-              {/* Obligatorio toggle */}
-              <div className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2.5">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Obligatorio</p>
-                  <p className="text-xs text-gray-400">El usuario debe rellenarlo</p>
-                </div>
-                <button
-                  role="switch"
-                  aria-checked={field.obligatorio}
-                  onClick={() => patch({ obligatorio: !field.obligatorio })}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                    field.obligatorio ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                      field.obligatorio ? 'translate-x-5' : 'translate-x-0'
-                    }`}
+              {!isEncabezado && (
+                <InputRow label="Placeholder">
+                  <input
+                    className={inputCls}
+                    value={field.placeholder ?? ''}
+                    onChange={(e) =>
+                      patch({ placeholder: e.target.value || undefined })
+                    }
+                    placeholder="Texto de ayuda dentro del campo"
                   />
-                </button>
-              </div>
+                </InputRow>
+              )}
+
+              {/* Obligatorio toggle — not shown for encabezado */}
+              {!isEncabezado && (
+                <div className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2.5">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Obligatorio</p>
+                    <p className="text-xs text-gray-400">El usuario debe rellenarlo</p>
+                  </div>
+                  <button
+                    role="switch"
+                    aria-checked={field.obligatorio}
+                    onClick={() => patch({ obligatorio: !field.obligatorio })}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                      field.obligatorio ? 'bg-blue-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                        field.obligatorio ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+              )}
             </div>
           </section>
+
+          {/* ── Encabezado: nivel ────────────────────────────────────────── */}
+          {isEncabezado && (
+            <section>
+              <SectionTitle>Nivel</SectionTitle>
+              <div className="flex gap-2">
+                {([1, 2, 3] as const).map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => patch({ nivelEncabezado: n })}
+                    className={`flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${
+                      (field.nivelEncabezado ?? 2) === n
+                        ? 'border-purple-400 bg-purple-50 text-purple-700'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    H{n}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ── Número: min / max / step ─────────────────────────────────── */}
+          {isNumero && (
+            <section>
+              <SectionTitle>Configuración numérica</SectionTitle>
+              <div className="grid grid-cols-3 gap-3">
+                <InputRow label="Mínimo">
+                  <input
+                    type="number"
+                    className={inputCls}
+                    value={field.min ?? ''}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value)
+                      patch({ min: isNaN(v) ? undefined : v })
+                    }}
+                    placeholder="—"
+                  />
+                </InputRow>
+                <InputRow label="Máximo">
+                  <input
+                    type="number"
+                    className={inputCls}
+                    value={field.max ?? ''}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value)
+                      patch({ max: isNaN(v) ? undefined : v })
+                    }}
+                    placeholder="—"
+                  />
+                </InputRow>
+                <InputRow label="Paso">
+                  <input
+                    type="number"
+                    min={0}
+                    className={inputCls}
+                    value={field.step ?? ''}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value)
+                      patch({ step: isNaN(v) ? undefined : v })
+                    }}
+                    placeholder="1"
+                  />
+                </InputRow>
+              </div>
+            </section>
+          )}
 
           {/* ── Opciones (radio / select) ────────────────────────────────── */}
           {hasOptions && (
@@ -329,20 +409,22 @@ export function FieldConfigurator({
           )}
 
           {/* ── Mensaje de error ─────────────────────────────────────────── */}
-          <section>
-            <SectionTitle>Mensaje de error</SectionTitle>
-            <InputRow label="Texto mostrado al fallar la validación">
-              <input
-                className={inputCls}
-                value={field.validacion?.mensajeError ?? ''}
-                onChange={(e) => {
-                  if (!e.target.value) clearValidationKey('mensajeError')
-                  else patchValidation({ mensajeError: e.target.value })
-                }}
-                placeholder="Ej. Este campo es obligatorio"
-              />
-            </InputRow>
-          </section>
+          {!isEncabezado && (
+            <section>
+              <SectionTitle>Mensaje de error</SectionTitle>
+              <InputRow label="Texto mostrado al fallar la validación">
+                <input
+                  className={inputCls}
+                  value={field.validacion?.mensajeError ?? ''}
+                  onChange={(e) => {
+                    if (!e.target.value) clearValidationKey('mensajeError')
+                    else patchValidation({ mensajeError: e.target.value })
+                  }}
+                  placeholder="Ej. Este campo es obligatorio"
+                />
+              </InputRow>
+            </section>
+          )}
         </div>
 
         {/* Panel footer */}

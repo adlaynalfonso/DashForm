@@ -13,6 +13,9 @@ const VALID_FIELD_TYPES = [
   'fecha',
   'firma-digital',
   'firma-texto',
+  'numero',
+  'texto-checkbox',
+  'encabezado',
 ] as const
 
 const FIELD_TYPE_LABELS: Record<(typeof VALID_FIELD_TYPES)[number], string> = {
@@ -26,6 +29,9 @@ const FIELD_TYPE_LABELS: Record<(typeof VALID_FIELD_TYPES)[number], string> = {
   'fecha': 'Fecha',
   'firma-digital': 'Firma digital',
   'firma-texto': 'Firma escrita',
+  'numero': 'Número',
+  'texto-checkbox': 'Texto con checkbox',
+  'encabezado': 'Encabezado',
 }
 
 // ── Campo schema ──────────────────────────────────────────────────────────────

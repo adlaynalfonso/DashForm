@@ -3,6 +3,7 @@ import {
   Type, AlignLeft, Mail, Phone, CheckSquare, CircleDot,
   ChevronDown, Calendar, PenLine, Pen,
   ChevronUp, Trash2, Settings2, X, Plus,
+  Hash, ListChecks, Heading,
 } from 'lucide-react'
 import type { Field, FieldType, LayoutRow } from '@/types/template'
 import { soloFieldIds } from '@/utils/layoutHelpers'
@@ -20,6 +21,9 @@ const FIELD_ICON: Record<FieldType, React.ReactNode> = {
   'fecha':            <Calendar className="h-4 w-4" />,
   'firma-digital':    <Pen className="h-4 w-4" />,
   'firma-texto':      <PenLine className="h-4 w-4" />,
+  'numero':           <Hash className="h-4 w-4" />,
+  'texto-checkbox':   <ListChecks className="h-4 w-4" />,
+  'encabezado':       <Heading className="h-4 w-4" />,
 }
 
 const FIELD_TYPE_LABEL: Record<FieldType, string> = {
@@ -33,6 +37,9 @@ const FIELD_TYPE_LABEL: Record<FieldType, string> = {
   'fecha':            'Fecha',
   'firma-digital':    'Firma digital',
   'firma-texto':      'Firma escrita',
+  'numero':           'Número',
+  'texto-checkbox':   'Texto + Checkbox',
+  'encabezado':       'Encabezado',
 }
 
 const FIELD_TYPE_OPTIONS: { tipo: FieldType; label: string }[] = [
@@ -46,6 +53,9 @@ const FIELD_TYPE_OPTIONS: { tipo: FieldType; label: string }[] = [
   { tipo: 'fecha',            label: 'Fecha' },
   { tipo: 'firma-digital',    label: 'Firma digital' },
   { tipo: 'firma-texto',      label: 'Firma escrita' },
+  { tipo: 'numero',           label: 'Número' },
+  { tipo: 'texto-checkbox',   label: 'Texto + Checkbox' },
+  { tipo: 'encabezado',       label: 'Encabezado' },
 ]
 
 // ── Row '+' dropdown ──────────────────────────────────────────────────────────

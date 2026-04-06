@@ -14,6 +14,18 @@ function isEmpty(value: unknown): boolean {
  * Returns an error message string, or null if valid.
  */
 export function validateField(field: Field, value: unknown): string | null {
+  // ── Encabezado is purely visual — never validate ──────────────────────────
+  if (field.tipo === 'encabezado') return null
+
+  // ── texto-checkbox: special required logic ────────────────────────────────
+  if (field.tipo === 'texto-checkbox') {
+    if (!field.obligatorio) return null
+    const v = value as { checked?: boolean; texto?: string } | undefined | null
+    if (!v || !v.checked) return 'Debes marcar la casilla.'
+    if (!v.texto || v.texto.trim() === '') return 'Este campo es obligatorio.'
+    return null
+  }
+
   // ── Required ─────────────────────────────────────────────────────────────
   if (field.obligatorio && isEmpty(value)) {
     if (field.tipo === 'checkbox') return 'Debes marcar esta casilla.'
@@ -25,6 +37,20 @@ export function validateField(field: Field, value: unknown): string | null {
 
   // ── Skip further checks when empty and not required ───────────────────────
   if (isEmpty(value)) return null
+
+  // ── numero: min/max validation ────────────────────────────────────────────
+  if (field.tipo === 'numero') {
+    const num = typeof value === 'number' ? value : parseFloat(String(value))
+    if (!isNaN(num)) {
+      if (field.min !== undefined && num < field.min) {
+        return `El valor mínimo es ${field.min}.`
+      }
+      if (field.max !== undefined && num > field.max) {
+        return `El valor máximo es ${field.max}.`
+      }
+    }
+    return null
+  }
 
   const str = typeof value === 'string' ? value : String(value)
 

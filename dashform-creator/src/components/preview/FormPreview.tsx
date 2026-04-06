@@ -12,6 +12,9 @@ import {
   PenLine,
   ChevronLeft,
   ChevronRight,
+  Hash,
+  ListChecks,
+  Heading,
 } from 'lucide-react'
 import type { Field, FieldType, Section, Template } from '@/types/template'
 import { normalizeLayout } from '@/utils/layoutHelpers'
@@ -29,6 +32,9 @@ const FIELD_ICON: Record<FieldType, React.ReactNode> = {
   'fecha':            <Calendar className="h-3.5 w-3.5" />,
   'firma-digital':    <Pen className="h-3.5 w-3.5" />,
   'firma-texto':      <PenLine className="h-3.5 w-3.5" />,
+  'numero':           <Hash className="h-3.5 w-3.5" />,
+  'texto-checkbox':   <ListChecks className="h-3.5 w-3.5" />,
+  'encabezado':       <Heading className="h-3.5 w-3.5" />,
 }
 
 // ── Base input classes ────────────────────────────────────────────────────────
@@ -198,6 +204,58 @@ function FieldPreview({ field }: { field: Field }) {
           </div>
         </div>
       )
+
+    case 'numero':
+      return (
+        <div>
+          <label className={labelCls}>
+            {field.label}
+            {required && <span className="ml-1 text-red-400">*</span>}
+          </label>
+          <input
+            disabled
+            type="number"
+            min={field.min}
+            max={field.max}
+            step={field.step ?? 1}
+            placeholder={field.placeholder ?? '0'}
+            className={inputBase}
+          />
+        </div>
+      )
+
+    case 'texto-checkbox':
+      return (
+        <div>
+          <label className={labelCls}>
+            {field.label}
+            {required && <span className="ml-1 text-red-400">*</span>}
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              disabled
+              type="checkbox"
+              className="h-4 w-4 shrink-0 rounded border-gray-300 accent-blue-500"
+            />
+            <input
+              disabled
+              type="text"
+              placeholder={field.placeholder ?? 'Escriba aquí...'}
+              className={`${inputBase} flex-1`}
+            />
+          </div>
+        </div>
+      )
+
+    case 'encabezado': {
+      const nivel = field.nivelEncabezado ?? 2
+      const cls =
+        nivel === 1 ? 'text-2xl font-bold text-gray-800' :
+        nivel === 2 ? 'text-xl font-semibold text-gray-800' :
+                      'text-lg font-medium text-gray-800'
+      const Tag = `h${nivel}` as 'h1' | 'h2' | 'h3'
+      return <Tag className={cls}>{field.label}</Tag>
+    }
   }
 }
 

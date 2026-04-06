@@ -165,6 +165,80 @@ describe('validateField – regex', () => {
   })
 })
 
+// ── numero ────────────────────────────────────────────────────────────────────
+
+describe('validateField – numero', () => {
+  it('devuelve error para campo numero obligatorio sin valor', () => {
+    const field = makeField({ tipo: 'numero', obligatorio: true })
+    expect(validateField(field, '')).toBe('Este campo es obligatorio.')
+  })
+
+  it('devuelve null para campo numero obligatorio con valor numérico', () => {
+    const field = makeField({ tipo: 'numero', obligatorio: true })
+    expect(validateField(field, 42)).toBeNull()
+  })
+
+  it('devuelve error cuando el valor es menor que min', () => {
+    const field = makeField({ tipo: 'numero', min: 10 })
+    expect(validateField(field, 5)).toBeTruthy()
+  })
+
+  it('devuelve error cuando el valor es mayor que max', () => {
+    const field = makeField({ tipo: 'numero', max: 100 })
+    expect(validateField(field, 150)).toBeTruthy()
+  })
+
+  it('devuelve null cuando el valor está dentro de min/max', () => {
+    const field = makeField({ tipo: 'numero', min: 0, max: 100 })
+    expect(validateField(field, 50)).toBeNull()
+  })
+
+  it('devuelve null para campo numero no obligatorio sin valor', () => {
+    const field = makeField({ tipo: 'numero', obligatorio: false })
+    expect(validateField(field, '')).toBeNull()
+  })
+})
+
+// ── texto-checkbox ────────────────────────────────────────────────────────────
+
+describe('validateField – texto-checkbox', () => {
+  it('devuelve error si obligatorio y checked es false', () => {
+    const field = makeField({ tipo: 'texto-checkbox', obligatorio: true })
+    expect(validateField(field, { checked: false, texto: '' })).toBeTruthy()
+  })
+
+  it('devuelve error si obligatorio y checked es true pero texto vacío', () => {
+    const field = makeField({ tipo: 'texto-checkbox', obligatorio: true })
+    expect(validateField(field, { checked: true, texto: '' })).toBeTruthy()
+  })
+
+  it('devuelve null si obligatorio y checked es true y texto no vacío', () => {
+    const field = makeField({ tipo: 'texto-checkbox', obligatorio: true })
+    expect(validateField(field, { checked: true, texto: 'algo' })).toBeNull()
+  })
+
+  it('devuelve null si no obligatorio y checked false', () => {
+    const field = makeField({ tipo: 'texto-checkbox', obligatorio: false })
+    expect(validateField(field, { checked: false, texto: '' })).toBeNull()
+  })
+
+  it('devuelve null si el valor es undefined y no obligatorio', () => {
+    const field = makeField({ tipo: 'texto-checkbox', obligatorio: false })
+    expect(validateField(field, undefined)).toBeNull()
+  })
+})
+
+// ── encabezado ────────────────────────────────────────────────────────────────
+
+describe('validateField – encabezado', () => {
+  it('siempre devuelve null independientemente del valor', () => {
+    const field = makeField({ tipo: 'encabezado', obligatorio: true })
+    expect(validateField(field, '')).toBeNull()
+    expect(validateField(field, undefined)).toBeNull()
+    expect(validateField(field, null)).toBeNull()
+  })
+})
+
 // ── validateAllFields ─────────────────────────────────────────────────────────
 
 describe('validateAllFields', () => {

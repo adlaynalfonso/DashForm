@@ -12,6 +12,7 @@ export interface FillerState {
   fechaCreacion: string
   plantilla: Template
   datos: Record<string, unknown>
+  estado: FilledForm['estado']
   erroresValidacion: Record<string, string>
   seccionActual: number
   loading: boolean
@@ -30,6 +31,7 @@ export type FillerAction =
   | { type: 'SET_LOADING'; loading: boolean }
   | { type: 'SET_SAVING'; saving: boolean }
   | { type: 'SET_ERROR'; error: string | null }
+  | { type: 'SET_ESTADO'; estado: FilledForm['estado'] }
 
 // ── Reducer ───────────────────────────────────────────────────────────────────
 
@@ -42,6 +44,7 @@ export function reducer(state: FillerState, action: FillerAction): FillerState {
         fechaCreacion: action.form.fechaCreacion,
         plantilla: action.form.plantilla,
         datos: action.form.datos,
+        estado: action.form.estado,
         erroresValidacion: {},
         seccionActual: 0,
         loading: false,
@@ -87,6 +90,9 @@ export function reducer(state: FillerState, action: FillerAction): FillerState {
     case 'SET_ERROR':
       return { ...state, error: action.error, loading: false }
 
+    case 'SET_ESTADO':
+      return { ...state, estado: action.estado }
+
     default:
       return state
   }
@@ -108,6 +114,7 @@ function makeInitialState(): FillerState {
       secciones: [],
     },
     datos: {},
+    estado: 'borrador',
     erroresValidacion: {},
     seccionActual: 0,
     loading: true,
@@ -124,9 +131,13 @@ export function isSectionComplete(
   datos: Record<string, unknown>,
 ): boolean {
   return section.campos
-    .filter((f) => f.obligatorio)
+    .filter((f) => f.obligatorio && f.tipo !== 'encabezado')
     .every((f) => {
       const v = datos[f.id]
+      if (f.tipo === 'texto-checkbox') {
+        const tc = v as { checked?: boolean; texto?: string } | undefined | null
+        return !!tc && !!tc.checked && !!tc.texto && tc.texto.trim() !== ''
+      }
       return v !== null && v !== undefined && v !== '' && v !== false
     })
 }
@@ -223,6 +234,7 @@ export function useFormFiller(formId?: string, templateId?: string): UseFormFill
     const errors = validateAllFields(stateRef.current.plantilla, stateRef.current.datos)
     if (Object.keys(errors).length > 0) return false
     await save('completado')
+    dispatch({ type: 'SET_ESTADO', estado: 'completado' })
     return true
   }, [save])
 

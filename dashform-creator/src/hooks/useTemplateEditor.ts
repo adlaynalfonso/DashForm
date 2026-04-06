@@ -39,12 +39,24 @@ const FIELD_LABELS: Record<FieldType, string> = {
   'fecha': 'Fecha',
   'firma-digital': 'Firma digital',
   'firma-texto': 'Firma escrita',
+  'numero': 'Número',
+  'texto-checkbox': 'Texto con checkbox',
+  'encabezado': 'Encabezado',
 }
 
 function defaultField(tipo: FieldType): Field {
   const base: Field = { id: uuid(), tipo, label: FIELD_LABELS[tipo], obligatorio: false }
   if (tipo === 'radio' || tipo === 'select') {
     return { ...base, opciones: ['Opción 1', 'Opción 2'] }
+  }
+  if (tipo === 'numero') {
+    return { ...base, placeholder: '0' }
+  }
+  if (tipo === 'texto-checkbox') {
+    return { ...base, placeholder: 'Escriba aquí...' }
+  }
+  if (tipo === 'encabezado') {
+    return { ...base, label: 'Encabezado de sección', obligatorio: false, nivelEncabezado: 2 }
   }
   return base
 }

@@ -125,6 +125,43 @@ describe('validateImportedFile – editable con datos corruptos', () => {
   })
 })
 
+// ── Nuevos tipos de campo ─────────────────────────────────────────────────────
+
+describe('validateImportedFile – nuevos tipos de campo', () => {
+  it('acepta campos de tipo numero', () => {
+    const json = makeTemplateJson({
+      secciones: [{
+        id: 'sec-1', nombre: 'S1',
+        campos: [{ id: 'n1', tipo: 'numero', label: 'Cantidad', min: 0, max: 100, step: 1 }],
+      }],
+    })
+    const result = validateImportedFile(json)
+    expect(result.valid).toBe(true)
+  })
+
+  it('acepta campos de tipo texto-checkbox', () => {
+    const json = makeTemplateJson({
+      secciones: [{
+        id: 'sec-1', nombre: 'S1',
+        campos: [{ id: 'tc1', tipo: 'texto-checkbox', label: 'Comentario', obligatorio: false }],
+      }],
+    })
+    const result = validateImportedFile(json)
+    expect(result.valid).toBe(true)
+  })
+
+  it('acepta campos de tipo encabezado', () => {
+    const json = makeTemplateJson({
+      secciones: [{
+        id: 'sec-1', nombre: 'S1',
+        campos: [{ id: 'h1', tipo: 'encabezado', label: 'Mi Encabezado', nivelEncabezado: 2 }],
+      }],
+    })
+    const result = validateImportedFile(json)
+    expect(result.valid).toBe(true)
+  })
+})
+
 // ── Detección automática de tipo ──────────────────────────────────────────────
 
 describe('validateImportedFile – detección automática de tipo', () => {

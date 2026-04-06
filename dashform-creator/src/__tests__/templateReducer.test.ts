@@ -45,11 +45,15 @@ const FIELD_LABELS: Record<FieldType, string> = {
   'texto': 'Campo de texto', 'texto-expandible': 'Texto largo', 'email': 'Email',
   'telefono': 'Teléfono', 'checkbox': 'Checkbox', 'radio': 'Radio',
   'select': 'Select', 'fecha': 'Fecha', 'firma-digital': 'Firma digital', 'firma-texto': 'Firma escrita',
+  'numero': 'Número', 'texto-checkbox': 'Texto con checkbox', 'encabezado': 'Encabezado',
 }
 
 function defaultField(tipo: FieldType): Field {
   const base: Field = { id: uuid(), tipo, label: FIELD_LABELS[tipo], obligatorio: false }
   if (tipo === 'radio' || tipo === 'select') return { ...base, opciones: ['Opción 1', 'Opción 2'] }
+  if (tipo === 'numero') return { ...base, placeholder: '0' }
+  if (tipo === 'texto-checkbox') return { ...base, placeholder: 'Escriba aquí...' }
+  if (tipo === 'encabezado') return { ...base, label: 'Encabezado de sección', obligatorio: false, nivelEncabezado: 2 }
   return base
 }
 
@@ -294,5 +298,39 @@ describe('reducer — fields', () => {
   it('field operations on wrong sectionId leave other section unchanged', () => {
     const state = reducer(base, { type: 'REMOVE_FIELD', payload: { sectionId: 's2', fieldId: 'f1' } })
     expect(state.secciones.find((s) => s.id === 's1')!.campos).toHaveLength(3)
+  })
+})
+
+describe('reducer — new field types', () => {
+  let base: Template
+
+  beforeEach(() => {
+    base = makeTemplate({ secciones: [{ id: 's1', nombre: 'S1', campos: [] }] })
+  })
+
+  it('ADD_FIELD numero has label Número and placeholder 0', () => {
+    const state = reducer(base, { type: 'ADD_FIELD', payload: { sectionId: 's1', tipo: 'numero' } })
+    const field = state.secciones[0].campos[0]
+    expect(field.tipo).toBe('numero')
+    expect(field.label).toBe('Número')
+    expect(field.placeholder).toBe('0')
+    expect(field.obligatorio).toBe(false)
+  })
+
+  it('ADD_FIELD texto-checkbox has correct label and placeholder', () => {
+    const state = reducer(base, { type: 'ADD_FIELD', payload: { sectionId: 's1', tipo: 'texto-checkbox' } })
+    const field = state.secciones[0].campos[0]
+    expect(field.tipo).toBe('texto-checkbox')
+    expect(field.label).toBe('Texto con checkbox')
+    expect(field.placeholder).toBe('Escriba aquí...')
+  })
+
+  it('ADD_FIELD encabezado has correct defaults', () => {
+    const state = reducer(base, { type: 'ADD_FIELD', payload: { sectionId: 's1', tipo: 'encabezado' } })
+    const field = state.secciones[0].campos[0]
+    expect(field.tipo).toBe('encabezado')
+    expect(field.label).toBe('Encabezado de sección')
+    expect(field.obligatorio).toBe(false)
+    expect(field.nivelEncabezado).toBe(2)
   })
 })

@@ -9,6 +9,9 @@ export type FieldType =
   | 'fecha'
   | 'firma-digital'
   | 'firma-texto'
+  | 'numero'
+  | 'texto-checkbox'
+  | 'encabezado'
 
 export interface FieldValidation {
   minLength?: number
@@ -25,6 +28,10 @@ export interface Field {
   obligatorio: boolean
   validacion?: FieldValidation
   opciones?: string[]
+  min?: number
+  max?: number
+  step?: number
+  nivelEncabezado?: 1 | 2 | 3
 }
 
 export interface Section {

@@ -91,12 +91,13 @@ test('exportar editable → importar editable → verificar datos cargados', asy
 
   const [fc2] = await Promise.all([
     page.waitForEvent('filechooser'),
-    page.getByTitle('Importar formulario en progreso (.json)').click(),
+    page.getByRole('button', { name: 'Importar Editable' }).click(),
   ])
   await fc2.setFiles(path.join(FIXTURES, 'editable_test.json'))
 
   // Should navigate to fill page with pre-loaded data
   await page.waitForURL(/\/fill\//)
-  await expect(page.getByDisplayValue('Ana García')).toBeVisible({ timeout: 8_000 })
-  await expect(page.getByDisplayValue('ana@ejemplo.com')).toBeVisible()
+  await page.waitForLoadState('domcontentloaded')
+  await expect(page.getByLabel('Nombre completo')).toHaveValue('Ana García', { timeout: 10_000 })
+  await expect(page.getByLabel('Correo electrónico')).toHaveValue('ana@ejemplo.com', { timeout: 10_000 })
 })

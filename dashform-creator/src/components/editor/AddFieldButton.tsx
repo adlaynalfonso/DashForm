@@ -11,6 +11,9 @@ import {
   Calendar,
   PenLine,
   Pen,
+  Hash,
+  ListChecks,
+  Heading,
 } from 'lucide-react'
 import type { FieldType } from '@/types/template'
 
@@ -23,8 +26,11 @@ const FIELD_OPTIONS: { tipo: FieldType; label: string; icon: React.ReactNode }[]
   { tipo: 'radio',            label: 'Opción única',   icon: <CircleDot className="h-4 w-4" /> },
   { tipo: 'select',           label: 'Desplegable',    icon: <ChevronDown className="h-4 w-4" /> },
   { tipo: 'fecha',            label: 'Fecha',          icon: <Calendar className="h-4 w-4" /> },
-  { tipo: 'firma-digital',    label: 'Firma digital',  icon: <Pen className="h-4 w-4" /> },
-  { tipo: 'firma-texto',      label: 'Firma escrita',  icon: <PenLine className="h-4 w-4" /> },
+  { tipo: 'firma-digital',    label: 'Firma digital',      icon: <Pen className="h-4 w-4" /> },
+  { tipo: 'firma-texto',      label: 'Firma escrita',      icon: <PenLine className="h-4 w-4" /> },
+  { tipo: 'numero',           label: 'Número',             icon: <Hash className="h-4 w-4" /> },
+  { tipo: 'texto-checkbox',   label: 'Texto + Checkbox',   icon: <ListChecks className="h-4 w-4" /> },
+  { tipo: 'encabezado',       label: 'Encabezado',         icon: <Heading className="h-4 w-4" /> },
 ]
 
 interface AddFieldButtonProps {

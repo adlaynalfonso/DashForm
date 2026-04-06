@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback, Component, lazy, Suspense } from 'react'
+import type { ReactNode, ErrorInfo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { PDFViewer } from '@react-pdf/renderer'
 import {
   ArrowLeft,
   Home,
@@ -169,6 +169,59 @@ const TEMPLATE_META: {
   },
 ]
 
+// ── Lazy PDFViewer — keeps @react-pdf/renderer out of the ExportPage chunk ───
+// Importing PDFViewer statically causes the module to initialise the PDF engine
+// during chunk load, which crashes in headless/restricted environments before
+// any React components are mounted (and before the ErrorBoundary can catch it).
+// Dynamic import defers initialisation to render-time and lets the
+// PdfPreviewErrorBoundary handle failures gracefully.
+
+type PDFViewerProps = {
+  width: string
+  height: string
+  showToolbar: boolean
+  key?: string
+  children: ReactNode
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const LazyPDFViewer = lazy(() =>
+  import('@react-pdf/renderer').then((m) => ({
+    default: m.PDFViewer as React.ComponentType<PDFViewerProps>,
+  })),
+)
+
+// ── PDF Preview Error Boundary ────────────────────────────────────────────────
+
+class PdfPreviewErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.warn('[ExportPage] PDFViewer error:', error, info)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex h-full w-full items-center justify-center rounded-2xl bg-gray-100 p-8 text-center">
+          <p className="text-sm text-gray-400">Vista previa no disponible en este entorno</p>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 // ── PDFViewer inner ───────────────────────────────────────────────────────────
 
 function LivePreview({
@@ -191,9 +244,22 @@ function LivePreview({
     )
 
   return (
-    <PDFViewer key={`${selectedTemplate}-${template.pdfConfig?.colorTema}`} width="100%" height="100%" showToolbar={false}>
-      {doc}
-    </PDFViewer>
+    <Suspense
+      fallback={
+        <div className="flex h-full w-full items-center justify-center rounded-2xl bg-gray-100 p-8 text-center">
+          <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+        </div>
+      }
+    >
+      <LazyPDFViewer
+        key={`${selectedTemplate}-${template.pdfConfig?.colorTema}`}
+        width="100%"
+        height="100%"
+        showToolbar={false}
+      >
+        {doc}
+      </LazyPDFViewer>
+    </Suspense>
   )
 }
 
@@ -573,11 +639,13 @@ export default function ExportPage() {
               className="flex-1 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 shadow-inner"
               style={{ minHeight: 480 }}
             >
-              <LivePreview
-                template={templateForPreview}
-                datos={form.datos}
-                selectedTemplate={selectedTemplate}
-              />
+              <PdfPreviewErrorBoundary>
+                <LivePreview
+                  template={templateForPreview}
+                  datos={form.datos}
+                  selectedTemplate={selectedTemplate}
+                />
+              </PdfPreviewErrorBoundary>
             </div>
           </div>
 
