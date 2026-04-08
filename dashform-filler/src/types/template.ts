@@ -34,10 +34,18 @@ export interface Field {
   nivelEncabezado?: 1 | 2 | 3
 }
 
+export interface LayoutRow {
+  id: string
+  campos: string[] // field IDs in display order
+}
+
+export type SectionLayout = LayoutRow[]
+
 export interface Section {
   id: string
   nombre: string
   campos: Field[]
+  layout?: SectionLayout // if absent, default is one field per row
 }
 
 export interface PdfConfig {
