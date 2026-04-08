@@ -14,6 +14,7 @@ import { SignatureField } from './fields/SignatureField'
 import { NumeroField } from './fields/NumeroField'
 import { TextoCheckboxField } from './fields/TextoCheckboxField'
 import { EncabezadoField } from './fields/EncabezadoField'
+import { TablaField } from './fields/TablaField'
 
 interface Props {
   section: Section
@@ -59,6 +60,8 @@ function renderField(
       return <TextoCheckboxField {...commonProps} onChange={handleChange} />
     case 'encabezado':
       return <EncabezadoField field={field} />
+    case 'tabla':
+      return <TablaField {...commonProps} onChange={handleChange as (v: Record<string, unknown>[]) => void} />
   }
 }
 

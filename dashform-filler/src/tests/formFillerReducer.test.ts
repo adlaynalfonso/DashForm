@@ -74,6 +74,17 @@ describe('reducer – SET_FIELD_VALUE', () => {
     expect(next.loading).toBe(BASE_STATE.loading)
     expect(next.saving).toBe(BASE_STATE.saving)
   })
+
+  it('acepta valor tipo array para campo tabla y lo almacena tal cual', () => {
+    const tablaValue = [
+      { cont: true, medication: 'Aspirin 100mg', comments: '' },
+      { cont: false, medication: 'Ibuprofeno 400mg', comments: 'Con alimentos' },
+    ]
+    const action: FillerAction = { type: 'SET_FIELD_VALUE', fieldId: 'tabla1', value: tablaValue }
+    const next = reducer(BASE_STATE, action)
+    expect(next.datos['tabla1']).toEqual(tablaValue)
+    expect(Array.isArray(next.datos['tabla1'])).toBe(true)
+  })
 })
 
 // ── VALIDATE_FIELD ────────────────────────────────────────────────────────────

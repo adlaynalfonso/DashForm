@@ -46,6 +46,7 @@ const FIELD_LABELS: Record<FieldType, string> = {
   'telefono': 'Teléfono', 'checkbox': 'Checkbox', 'radio': 'Radio',
   'select': 'Select', 'fecha': 'Fecha', 'firma-digital': 'Firma digital', 'firma-texto': 'Firma escrita',
   'numero': 'Número', 'texto-checkbox': 'Texto con checkbox', 'encabezado': 'Encabezado',
+  'tabla': 'Tabla editable',
 }
 
 function defaultField(tipo: FieldType): Field {
@@ -54,6 +55,15 @@ function defaultField(tipo: FieldType): Field {
   if (tipo === 'numero') return { ...base, placeholder: '0' }
   if (tipo === 'texto-checkbox') return { ...base, placeholder: 'Escriba aquí...' }
   if (tipo === 'encabezado') return { ...base, label: 'Encabezado de sección', obligatorio: false, nivelEncabezado: 2 }
+  if (tipo === 'tabla') return {
+    ...base,
+    columnas: [
+      { id: uuid(), label: 'Columna 1', ancho: 40, tipo: 'texto' },
+      { id: uuid(), label: 'Columna 2', ancho: 30, tipo: 'texto' },
+      { id: uuid(), label: 'Columna 3', ancho: 30, tipo: 'checkbox' },
+    ],
+    filasMin: 5,
+  }
   return base
 }
 
@@ -332,5 +342,19 @@ describe('reducer — new field types', () => {
     expect(field.label).toBe('Encabezado de sección')
     expect(field.obligatorio).toBe(false)
     expect(field.nivelEncabezado).toBe(2)
+  })
+
+  it('ADD_FIELD tabla has label, 3 columnas with uuid ids, and filasMin 5', () => {
+    const state = reducer(base, { type: 'ADD_FIELD', payload: { sectionId: 's1', tipo: 'tabla' } })
+    const field = state.secciones[0].campos[0]
+    expect(field.tipo).toBe('tabla')
+    expect(field.label).toBe('Tabla editable')
+    expect(field.obligatorio).toBe(false)
+    expect(field.columnas).toHaveLength(3)
+    expect(field.filasMin).toBe(5)
+    // IDs deben ser UUIDs únicos (no strings hardcodeados)
+    const ids = field.columnas!.map((c) => c.id)
+    expect(new Set(ids).size).toBe(3)
+    ids.forEach((id) => expect(id).toMatch(/^[0-9a-f-]{36}$/))
   })
 })

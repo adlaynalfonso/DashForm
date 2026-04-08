@@ -12,6 +12,15 @@ export type FieldType =
   | 'numero'
   | 'texto-checkbox'
   | 'encabezado'
+  | 'tabla'
+
+export interface TablaColumna {
+  id: string
+  label: string
+  ancho?: number
+  tipo: 'texto' | 'checkbox' | 'fecha' | 'select'
+  opciones?: string[]
+}
 
 export interface FieldValidation {
   minLength?: number
@@ -32,6 +41,9 @@ export interface Field {
   max?: number
   step?: number
   nivelEncabezado?: 1 | 2 | 3
+  columnas?: TablaColumna[]
+  filasMin?: number
+  filasMax?: number
 }
 
 export interface LayoutRow {

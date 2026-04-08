@@ -17,6 +17,19 @@ export function validateField(field: Field, value: unknown): string | null {
   // ── Encabezado is purely visual — never validate ──────────────────────────
   if (field.tipo === 'encabezado') return null
 
+  // ── Tabla: obligatorio = al menos una fila con datos ──────────────────────
+  if (field.tipo === 'tabla') {
+    if (!field.obligatorio) return null
+    const rows = Array.isArray(value) ? value : []
+    const hasData = rows.some((row) =>
+      Object.values(row as Record<string, unknown>).some(
+        (v) => v !== '' && v !== null && v !== undefined && v !== false,
+      ),
+    )
+    if (!hasData) return 'Esta tabla debe tener al menos una fila con datos.'
+    return null
+  }
+
   // ── texto-checkbox: special required logic ────────────────────────────────
   if (field.tipo === 'texto-checkbox') {
     if (!field.obligatorio) return null

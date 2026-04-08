@@ -16,8 +16,10 @@ import {
   Hash,
   ListChecks,
   Heading,
+  Table2,
 } from 'lucide-react'
-import type { Field, FieldType, FieldValidation } from '@/types/template'
+import { v4 as uuid } from 'uuid'
+import type { Field, FieldType, FieldValidation, TablaColumna } from '@/types/template'
 
 // ── Type metadata ─────────────────────────────────────────────────────────────
 
@@ -35,6 +37,7 @@ const FIELD_META: Record<FieldType, { label: string; icon: React.ReactNode; colo
   'numero':           { label: 'Número',             icon: <Hash className="h-4 w-4" />,        color: 'bg-emerald-100 text-emerald-600' },
   'texto-checkbox':   { label: 'Texto + Checkbox',   icon: <ListChecks className="h-4 w-4" />,  color: 'bg-orange-100 text-orange-600' },
   'encabezado':       { label: 'Encabezado',         icon: <Heading className="h-4 w-4" />,     color: 'bg-purple-100 text-purple-600' },
+  'tabla':            { label: 'Tabla',              icon: <Table2 className="h-4 w-4" />,      color: 'bg-indigo-100 text-indigo-600' },
 }
 
 const TEXT_TYPES: FieldType[] = ['texto', 'texto-expandible', 'email', 'telefono']
@@ -156,6 +159,25 @@ export function FieldConfigurator({
   const hasOptions = OPTION_TYPES.includes(field.tipo)
   const isEncabezado = field.tipo === 'encabezado'
   const isNumero = field.tipo === 'numero'
+  const isTabla = field.tipo === 'tabla'
+
+  // ── Tabla column helpers ─────────────────────────────────────────────────
+  function addColumna() {
+    const columnas: TablaColumna[] = [
+      ...(field.columnas ?? []),
+      { id: uuid(), label: `Columna ${(field.columnas?.length ?? 0) + 1}`, tipo: 'texto' },
+    ]
+    patch({ columnas })
+  }
+
+  function updateColumna(idx: number, partial: Partial<TablaColumna>) {
+    const columnas = (field.columnas ?? []).map((c, i) => i === idx ? { ...c, ...partial } : c)
+    patch({ columnas })
+  }
+
+  function removeColumna(idx: number) {
+    patch({ columnas: (field.columnas ?? []).filter((_, i) => i !== idx) })
+  }
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -206,7 +228,7 @@ export function FieldConfigurator({
                 />
               </InputRow>
 
-              {!isEncabezado && (
+              {!isEncabezado && !isTabla && (
                 <InputRow label="Placeholder">
                   <input
                     className={inputCls}
@@ -313,6 +335,120 @@ export function FieldConfigurator({
             </section>
           )}
 
+          {/* ── Tabla: columnas + filas ─────────────────────────────────── */}
+          {isTabla && (
+            <section>
+              <SectionTitle>Columnas</SectionTitle>
+              <div className="space-y-3">
+                {(field.columnas ?? []).map((col, idx) => (
+                  <div key={col.id} className="rounded-lg border border-gray-200 p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 w-5 text-right shrink-0">{idx + 1}.</span>
+                      <input
+                        className={`${inputCls} flex-1`}
+                        value={col.label}
+                        onChange={(e) => updateColumna(idx, { label: e.target.value })}
+                        placeholder="Nombre de columna"
+                      />
+                      <button
+                        onClick={() => removeColumna(idx)}
+                        disabled={(field.columnas?.length ?? 0) <= 1}
+                        className="rounded p-1.5 text-gray-300 hover:bg-red-50 hover:text-red-500 disabled:opacity-30 shrink-0"
+                        title="Eliminar columna"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="flex gap-2 pl-7">
+                      <div className="flex-1">
+                        <label className="mb-1 block text-xs font-medium text-gray-500">Tipo</label>
+                        <select
+                          className={inputCls}
+                          value={col.tipo}
+                          onChange={(e) => updateColumna(idx, { tipo: e.target.value as TablaColumna['tipo'], opciones: undefined })}
+                        >
+                          <option value="texto">Texto</option>
+                          <option value="checkbox">Checkbox</option>
+                          <option value="fecha">Fecha</option>
+                          <option value="select">Desplegable</option>
+                        </select>
+                      </div>
+                      <div className="w-20">
+                        <label className="mb-1 block text-xs font-medium text-gray-500">Ancho %</label>
+                        <input
+                          type="number"
+                          min={5}
+                          max={100}
+                          className={inputCls}
+                          value={col.ancho ?? ''}
+                          onChange={(e) => {
+                            const v = parseInt(e.target.value)
+                            updateColumna(idx, { ancho: isNaN(v) ? undefined : v })
+                          }}
+                          placeholder="auto"
+                        />
+                      </div>
+                    </div>
+                    {col.tipo === 'select' && (
+                      <div className="pl-7 space-y-1">
+                        <label className="block text-xs font-medium text-gray-500">Opciones (una por línea)</label>
+                        <textarea
+                          className={`${inputCls} resize-none`}
+                          rows={3}
+                          value={(col.opciones ?? []).join('\n')}
+                          onChange={(e) =>
+                            updateColumna(idx, {
+                              opciones: e.target.value.split('\n').filter((o) => o.trim()),
+                            })
+                          }
+                          placeholder={"Opción 1\nOpción 2"}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <button
+                  onClick={addColumna}
+                  className="flex items-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs font-medium text-gray-500 hover:border-indigo-400 hover:text-indigo-600 w-full justify-center"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Añadir columna
+                </button>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Filas mínimas</label>
+                  <input
+                    type="number"
+                    min={1}
+                    className={inputCls}
+                    value={field.filasMin ?? ''}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value)
+                      patch({ filasMin: isNaN(v) ? undefined : v })
+                    }}
+                    placeholder="5"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Filas máximas</label>
+                  <input
+                    type="number"
+                    min={1}
+                    className={inputCls}
+                    value={field.filasMax ?? ''}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value)
+                      patch({ filasMax: isNaN(v) ? undefined : v })
+                    }}
+                    placeholder="20"
+                  />
+                </div>
+              </div>
+            </section>
+          )}
+
           {/* ── Opciones (radio / select) ────────────────────────────────── */}
           {hasOptions && (
             <section>
@@ -409,7 +545,7 @@ export function FieldConfigurator({
           )}
 
           {/* ── Mensaje de error ─────────────────────────────────────────── */}
-          {!isEncabezado && (
+          {!isEncabezado && !isTabla && (
             <section>
               <SectionTitle>Mensaje de error</SectionTitle>
               <InputRow label="Texto mostrado al fallar la validación">

@@ -3,7 +3,7 @@ import {
   Type, AlignLeft, Mail, Phone, CheckSquare, CircleDot,
   ChevronDown, Calendar, PenLine, Pen,
   ChevronUp, Trash2, Settings2, X, Plus,
-  Hash, ListChecks, Heading,
+  Hash, ListChecks, Heading, Table2,
 } from 'lucide-react'
 import type { Field, FieldType, LayoutRow } from '@/types/template'
 import { soloFieldIds } from '@/utils/layoutHelpers'
@@ -24,6 +24,7 @@ const FIELD_ICON: Record<FieldType, React.ReactNode> = {
   'numero':           <Hash className="h-4 w-4" />,
   'texto-checkbox':   <ListChecks className="h-4 w-4" />,
   'encabezado':       <Heading className="h-4 w-4" />,
+  'tabla':            <Table2 className="h-4 w-4" />,
 }
 
 const FIELD_TYPE_LABEL: Record<FieldType, string> = {
@@ -40,6 +41,7 @@ const FIELD_TYPE_LABEL: Record<FieldType, string> = {
   'numero':           'Número',
   'texto-checkbox':   'Texto + Checkbox',
   'encabezado':       'Encabezado',
+  'tabla':            'Tabla',
 }
 
 const FIELD_TYPE_OPTIONS: { tipo: FieldType; label: string }[] = [
@@ -56,6 +58,7 @@ const FIELD_TYPE_OPTIONS: { tipo: FieldType; label: string }[] = [
   { tipo: 'numero',           label: 'Número' },
   { tipo: 'texto-checkbox',   label: 'Texto + Checkbox' },
   { tipo: 'encabezado',       label: 'Encabezado' },
+  { tipo: 'tabla',            label: 'Tabla' },
 ]
 
 // ── Row '+' dropdown ──────────────────────────────────────────────────────────

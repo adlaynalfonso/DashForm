@@ -15,6 +15,7 @@ import {
   Hash,
   ListChecks,
   Heading,
+  Table2,
 } from 'lucide-react'
 import type { Field, FieldType, Section, Template } from '@/types/template'
 import { normalizeLayout } from '@/utils/layoutHelpers'
@@ -35,6 +36,7 @@ const FIELD_ICON: Record<FieldType, React.ReactNode> = {
   'numero':           <Hash className="h-3.5 w-3.5" />,
   'texto-checkbox':   <ListChecks className="h-3.5 w-3.5" />,
   'encabezado':       <Heading className="h-3.5 w-3.5" />,
+  'tabla':            <Table2 className="h-3.5 w-3.5" />,
 }
 
 // ── Base input classes ────────────────────────────────────────────────────────
@@ -226,24 +228,22 @@ function FieldPreview({ field }: { field: Field }) {
 
     case 'texto-checkbox':
       return (
-        <div>
-          <label className={labelCls}>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            disabled
+            type="checkbox"
+            className="h-4 w-4 shrink-0 rounded border-gray-300 accent-blue-500"
+          />
+          <span className="shrink-0 text-sm font-medium text-gray-700">
             {field.label}
             {required && <span className="ml-1 text-red-400">*</span>}
-          </label>
-          <div className="flex items-center gap-3">
-            <input
-              disabled
-              type="checkbox"
-              className="h-4 w-4 shrink-0 rounded border-gray-300 accent-blue-500"
-            />
-            <input
-              disabled
-              type="text"
-              placeholder={field.placeholder ?? 'Escriba aquí...'}
-              className={`${inputBase} flex-1`}
-            />
-          </div>
+          </span>
+          <input
+            disabled
+            type="text"
+            placeholder={field.placeholder ?? 'Escriba aquí...'}
+            className="flex-1 min-w-[120px] rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-400 outline-none cursor-not-allowed"
+          />
         </div>
       )
 
@@ -255,6 +255,66 @@ function FieldPreview({ field }: { field: Field }) {
                       'text-lg font-medium text-gray-800'
       const Tag = `h${nivel}` as 'h1' | 'h2' | 'h3'
       return <Tag className={cls}>{field.label}</Tag>
+    }
+
+    case 'tabla': {
+      const columnas = field.columnas ?? []
+      const filasMin = field.filasMin ?? 5
+      if (columnas.length === 0) {
+        return (
+          <div>
+            <label className={labelCls}>
+              {field.label}
+              {required && <span className="ml-1 text-red-400">*</span>}
+            </label>
+            <p className="text-xs text-gray-400 italic">Sin columnas definidas</p>
+          </div>
+        )
+      }
+      return (
+        <div>
+          <label className={labelCls}>
+            {field.label}
+            {required && <span className="ml-1 text-red-400">*</span>}
+          </label>
+          <div className="overflow-x-auto rounded-lg border border-gray-200">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  {columnas.map((col) => (
+                    <th
+                      key={col.id}
+                      className="border border-gray-200 px-2 py-1.5 text-left font-medium text-gray-600 whitespace-nowrap"
+                      style={col.ancho ? { width: `${col.ancho}%` } : undefined}
+                    >
+                      {col.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: filasMin }).map((_, rowIdx) => (
+                  <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    {columnas.map((col) => (
+                      <td key={col.id} className="border border-gray-200 px-2 py-1">
+                        {col.tipo === 'checkbox' ? (
+                          <input disabled type="checkbox" className="h-3.5 w-3.5 accent-blue-500" />
+                        ) : (
+                          <input
+                            disabled
+                            type={col.tipo === 'fecha' ? 'date' : 'text'}
+                            className="w-full bg-transparent text-gray-400 outline-none cursor-not-allowed"
+                          />
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )
     }
   }
 }

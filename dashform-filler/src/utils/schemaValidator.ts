@@ -16,6 +16,7 @@ const VALID_FIELD_TYPES = [
   'numero',
   'texto-checkbox',
   'encabezado',
+  'tabla',
 ] as const
 
 const FIELD_TYPE_LABELS: Record<(typeof VALID_FIELD_TYPES)[number], string> = {
@@ -32,6 +33,7 @@ const FIELD_TYPE_LABELS: Record<(typeof VALID_FIELD_TYPES)[number], string> = {
   'numero': 'Número',
   'texto-checkbox': 'Texto con checkbox',
   'encabezado': 'Encabezado',
+  'tabla': 'Tabla editable',
 }
 
 // ── Campo schema ──────────────────────────────────────────────────────────────

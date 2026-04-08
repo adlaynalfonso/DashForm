@@ -6,6 +6,7 @@ import {
   isTextSignature,
   todayLabel,
 } from './pdfHelpers'
+import { isTablaField, renderTablaField } from './pdfTablaRenderer'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -142,20 +143,27 @@ export function ModernTemplate({ template, datos }: PdfTemplateProps) {
               const value = datos[field.id]
               const isImg = isBase64Signature(field, value)
               const isSig = isTextSignature(field)
+              const isTabla = isTablaField(field)
 
               return (
                 <View key={field.id} style={S.field}>
-                  <Text style={S.fieldLabel}>{field.label}</Text>
-                  {isImg ? (
-                    <Image style={S.signatureImage} src={value} />
-                  ) : isSig ? (
-                    <Text style={S.signatureText}>
-                      {typeof value === 'string' && value ? value : '—'}
-                    </Text>
+                  {isTabla ? (
+                    renderTablaField(field, value, { labelStyle: S.fieldLabel, theme })
                   ) : (
-                    <Text style={S.fieldValue}>
-                      {formatFieldValue(field, value) || '—'}
-                    </Text>
+                    <>
+                      <Text style={S.fieldLabel}>{field.label}</Text>
+                      {isImg ? (
+                        <Image style={S.signatureImage} src={value} />
+                      ) : isSig ? (
+                        <Text style={S.signatureText}>
+                          {typeof value === 'string' && value ? value : '—'}
+                        </Text>
+                      ) : (
+                        <Text style={S.fieldValue}>
+                          {formatFieldValue(field, value) || '—'}
+                        </Text>
+                      )}
+                    </>
                   )}
                 </View>
               )

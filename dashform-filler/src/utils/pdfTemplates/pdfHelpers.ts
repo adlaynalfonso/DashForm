@@ -26,6 +26,10 @@ export function formatFieldValue(field: Field, value: unknown): string {
     case 'firma-texto':
       return ''
 
+    // Tabla is rendered specially — return empty so callers check isTablaField
+    case 'tabla':
+      return ''
+
     default:
       return String(value)
   }
@@ -47,9 +51,14 @@ export function isTextSignature(field: Field): boolean {
   return field.tipo === 'firma-texto'
 }
 
-/** True when the field needs full-column width (signatures, long text). */
+/** True when the field needs full-column width (signatures, long text, tables). */
 export function needsFullWidth(field: Field): boolean {
-  return field.tipo === 'firma-digital' || field.tipo === 'firma-texto' || field.tipo === 'texto-expandible'
+  return (
+    field.tipo === 'firma-digital' ||
+    field.tipo === 'firma-texto' ||
+    field.tipo === 'texto-expandible' ||
+    field.tipo === 'tabla'
+  )
 }
 
 // ── Date helper ───────────────────────────────────────────────────────────────

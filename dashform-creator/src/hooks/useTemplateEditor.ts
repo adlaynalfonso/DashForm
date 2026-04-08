@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useState, useCallback } from 'react'
 import { v4 as uuid } from 'uuid'
-import type { Template, Section, Field, FieldType, PdfConfig } from '@/types/template'
+import type { Template, Section, Field, FieldType, PdfConfig, TablaColumna } from '@/types/template'
 import { getTemplate, saveTemplate, type StoredTemplate } from '@/utils/db'
 import {
   normalizeLayout,
@@ -42,6 +42,7 @@ const FIELD_LABELS: Record<FieldType, string> = {
   'numero': 'Número',
   'texto-checkbox': 'Texto con checkbox',
   'encabezado': 'Encabezado',
+  'tabla': 'Tabla editable',
 }
 
 function defaultField(tipo: FieldType): Field {
@@ -57,6 +58,14 @@ function defaultField(tipo: FieldType): Field {
   }
   if (tipo === 'encabezado') {
     return { ...base, label: 'Encabezado de sección', obligatorio: false, nivelEncabezado: 2 }
+  }
+  if (tipo === 'tabla') {
+    const columnas: TablaColumna[] = [
+      { id: uuid(), label: 'Columna 1', ancho: 40, tipo: 'texto' },
+      { id: uuid(), label: 'Columna 2', ancho: 30, tipo: 'texto' },
+      { id: uuid(), label: 'Columna 3', ancho: 30, tipo: 'checkbox' },
+    ]
+    return { ...base, columnas, filasMin: 5 }
   }
   return base
 }
