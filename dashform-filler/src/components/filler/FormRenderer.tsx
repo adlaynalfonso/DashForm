@@ -83,7 +83,7 @@ export function FormRenderer({ section, datos, errores, dispatch }: Props) {
         const rowFields = row.campos.map((id) => fieldMap.get(id)).filter(Boolean) as Field[]
         if (rowFields.length === 0) return null
         return (
-          <div key={row.id} className="flex flex-col gap-4 sm:flex-row">
+          <div key={row.id} className="flex flex-col gap-4 sm:flex-row sm:items-end">
             {rowFields.map((field) => {
               const value = datos[field.id]
               const error = errores[field.id]
