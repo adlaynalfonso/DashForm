@@ -220,4 +220,79 @@ test.describe('DashForm Creator — full flow', () => {
 
     await expect(page.getByText('Borrame')).not.toBeVisible()
   })
+
+  // ── 8. Import JSON template ───────────────────────────────────────────────
+
+  test('importing a valid JSON template navigates to editor', async ({ page }) => {
+    // Build a minimal valid dashform-template JSON file
+    const template = {
+      type: 'dashform-template',
+      schemaVersion: 1,
+      exportedAt: new Date().toISOString(),
+      template: {
+        id: 'import-original-id',
+        nombre: 'Plantilla Importada',
+        descripcion: 'Importada desde archivo',
+        version: '1.0.0',
+        schemaVersion: 1,
+        pdfConfig: { template: 'modern', colorTema: '#3b82f6' },
+        secciones: [
+          {
+            id: 's1',
+            nombre: 'Sección 1',
+            campos: [
+              { id: 'f1', tipo: 'texto', label: 'Nombre', obligatorio: false },
+            ],
+          },
+        ],
+      },
+    }
+
+    const filePath = path.join(__dirname, '__fixtures__', 'import-test.json')
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.writeFileSync(filePath, JSON.stringify(template))
+
+    try {
+      await page.goto('/')
+
+      // Trigger file chooser via the Importar button
+      const [fileChooser] = await Promise.all([
+        page.waitForEvent('filechooser'),
+        page.getByRole('button', { name: /importar/i }).click(),
+      ])
+      await fileChooser.setFiles(filePath)
+
+      // Should navigate to /editor/:id (with a NEW id, not 'import-original-id')
+      await expect(page).toHaveURL(/\/editor\/.+/, { timeout: 5000 })
+      await expect(page).not.toHaveURL(/import-original-id/)
+
+      // Template name should be pre-filled
+      await expect(page.getByPlaceholder('Nombre de la plantilla')).toHaveValue('Plantilla Importada')
+    } finally {
+      fs.rmSync(filePath, { force: true })
+    }
+  })
+
+  test('importing an invalid file shows an error banner', async ({ page }) => {
+    const filePath = path.join(__dirname, '__fixtures__', 'invalid.json')
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.writeFileSync(filePath, JSON.stringify({ type: 'dashform-editable' }))
+
+    try {
+      await page.goto('/')
+
+      const [fileChooser] = await Promise.all([
+        page.waitForEvent('filechooser'),
+        page.getByRole('button', { name: /importar/i }).click(),
+      ])
+      await fileChooser.setFiles(filePath)
+
+      // Should stay on home page
+      await expect(page).toHaveURL('/')
+      // Error banner with Filler mention should appear
+      await expect(page.getByText(/filler/i)).toBeVisible({ timeout: 3000 })
+    } finally {
+      fs.rmSync(filePath, { force: true })
+    }
+  })
 })

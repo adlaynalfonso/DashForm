@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus,
+  Upload,
   FileText,
   Pencil,
   Eye,
@@ -16,6 +17,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useTemplateStorage } from '@/hooks/useTemplateStorage'
 import { useExportTemplate } from '@/hooks/useExportTemplate'
+import { useImportTemplate } from '@/hooks/useImportTemplate'
 import { ExportValidationModal } from '@/components/common/ExportValidationModal'
 import type { StoredTemplate } from '@/utils/db'
 import type { Template } from '@/types/template'
@@ -205,13 +207,16 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { templates, loading, error, remove } = useTemplateStorage()
+  const { templates, loading, error, remove, refresh } = useTemplateStorage()
   const { loading: exportLoading, validar, exportar } = useExportTemplate()
 
   const [toDelete, setToDelete] = useState<StoredTemplate | null>(null)
-  // pending export: template waiting for user to confirm despite validation errors
   const [pendingExport, setPendingExport] = useState<Template | null>(null)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
+
+  const importInputRef = useRef<HTMLInputElement>(null)
+  const { importFromFile, loading: importLoading, errors: importErrors, clearErrors } =
+    useImportTemplate(refresh)
 
   function handleExportClick(template: Template) {
     const result = validar(template)
@@ -240,8 +245,28 @@ export default function HomePage() {
     setToDelete(null)
   }
 
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // Reset input so the same file can be re-imported if needed
+    e.target.value = ''
+    const result = await importFromFile(file)
+    if (result.success && result.templateId) {
+      navigate(`/editor/${result.templateId}`)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Hidden file input for import */}
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={handleImportFile}
+      />
+
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -249,18 +274,51 @@ export default function HomePage() {
             <h1 className="text-xl font-bold text-gray-900">DashForm Creator</h1>
             <p className="text-xs text-gray-500">Diseña plantillas de formulario</p>
           </div>
-          <button
-            onClick={() => navigate('/editor')}
-            className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4" />
-            Nueva Plantilla
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => importInputRef.current?.click()}
+              disabled={importLoading}
+              className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              {importLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              Importar
+            </button>
+            <button
+              onClick={() => navigate('/editor')}
+              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4" />
+              Nueva Plantilla
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Content */}
       <main className="mx-auto max-w-6xl px-6 py-8">
+        {/* Import error banner */}
+        {importErrors.length > 0 && (
+          <div className="mb-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="flex-1">
+              {importErrors.length === 1 ? (
+                <p>{importErrors[0]}</p>
+              ) : (
+                <ul className="list-disc pl-4 space-y-0.5">
+                  {importErrors.map((e, i) => <li key={i}>{e}</li>)}
+                </ul>
+              )}
+            </div>
+            <button onClick={clearErrors} className="text-red-400 hover:text-red-600" aria-label="Cerrar">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[...Array(3)].map((_, i) => (
