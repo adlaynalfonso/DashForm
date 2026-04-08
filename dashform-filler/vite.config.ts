@@ -11,10 +11,11 @@ export default defineConfig({
     },
   },
 
-  // @react-pdf/renderer uses internal web workers and dynamic imports that
-  // conflict with Vite's dependency pre-bundling. Excluding it avoids those issues.
+  // Pre-bundle @react-pdf/renderer and its CJS dependencies so Vite converts
+  // them to ESM. Without this, base64-js (CommonJS) is served as-is and
+  // throws "does not provide an export named 'default'" at runtime.
   optimizeDeps: {
-    exclude: ['@react-pdf/renderer'],
+    include: ['@react-pdf/renderer', 'base64-js', 'buffer'],
   },
 
   plugins: [
