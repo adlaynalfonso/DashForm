@@ -14,6 +14,7 @@ import {
   Hash,
   ListChecks,
   Heading,
+  Table2,
 } from 'lucide-react'
 import type { FieldType } from '@/types/template'
 
@@ -31,6 +32,7 @@ const FIELD_OPTIONS: { tipo: FieldType; label: string; icon: React.ReactNode }[]
   { tipo: 'numero',           label: 'Número',             icon: <Hash className="h-4 w-4" /> },
   { tipo: 'texto-checkbox',   label: 'Texto + Checkbox',   icon: <ListChecks className="h-4 w-4" /> },
   { tipo: 'encabezado',       label: 'Encabezado',         icon: <Heading className="h-4 w-4" /> },
+  { tipo: 'tabla',            label: 'Tabla',              icon: <Table2 className="h-4 w-4" /> },
 ]
 
 interface AddFieldButtonProps {
