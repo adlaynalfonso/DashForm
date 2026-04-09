@@ -1,0 +1,28 @@
+{
+  "type": "dashform-template",
+  "schemaVersion": 1,
+  "exportedAt": "2026-04-04T00:00:00.000Z",
+  "template": {
+    "id": "test-texto-checkbox-001",
+    "nombre": "Test Texto-Checkbox",
+    "descripcion": "Plantilla para verificar texto-checkbox inline",
+    "version": "1.0.0",
+    "schemaVersion": 1,
+    "pdfConfig": { "template": "modern", "colorTema": "#3b82f6" },
+    "secciones": [
+      {
+        "id": "sec1",
+        "nombre": "Sección 1",
+        "campos": [
+          {
+            "id": "tc1",
+            "tipo": "texto-checkbox",
+            "label": "Otro",
+            "obligatorio": false,
+            "placeholder": "Escriba aquí..."
+          }
+        ]
+      }
+    ]
+  }
+}
