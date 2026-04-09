@@ -4,23 +4,22 @@ import {
   formatFieldValue,
   isBase64Signature,
   isTextSignature,
-  needsFullWidth,
   todayLabel,
 } from './pdfHelpers'
+import { renderCheckboxMark } from './pdfCheckbox'
 import { isTablaField, renderTablaField } from './pdfTablaRenderer'
+import { normalizeLayout } from '@/utils/layoutHelpers'
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const MARGIN = 30
+const CONTENT_WIDTH = 595 - MARGIN * 2 // 535pt
 const DEFAULT_THEME = '#1e3a8a'
 
 export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
   const theme = template.pdfConfig?.colorTema ?? DEFAULT_THEME
   const logoUrl = template.pdfConfig?.logoUrl
   const hasLogo = !!logoUrl && logoUrl.startsWith('http')
-
-  // Content width: A4 595pt − 2×30pt margins = 535pt; two cols with 8pt gap → 263.5pt each
-  const colWidth = (535 - 8) / 2
 
   const S = StyleSheet.create({
     page: {
@@ -80,33 +79,18 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
       textTransform: 'uppercase',
       letterSpacing: 0.5,
     },
-    // ── Two-column layout ─────────────────────────────────────────────────────
-    fieldsRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
+    // ── Table layout ──────────────────────────────────────────────────────────
+    tableOuter: {
       borderWidth: 0.5,
       borderColor: '#d1d5db',
       borderStyle: 'solid',
       borderTopWidth: 0,
     },
-    fieldCell: {
-      width: colWidth,
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-      borderRightWidth: 0.5,
-      borderRightColor: '#d1d5db',
-      borderRightStyle: 'solid',
-      borderBottomWidth: 0.5,
-      borderBottomColor: '#d1d5db',
-      borderBottomStyle: 'solid',
-    },
-    fieldCellFull: {
-      width: '100%',
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-      borderBottomWidth: 0.5,
-      borderBottomColor: '#d1d5db',
-      borderBottomStyle: 'solid',
+    tableRow: {
+      flexDirection: 'row',
+      borderTopWidth: 0.5,
+      borderTopColor: '#d1d5db',
+      borderTopStyle: 'solid',
     },
     fieldLabel: {
       fontFamily: 'Helvetica-Bold',
@@ -163,54 +147,137 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
               <Text style={S.description}>{template.descripcion}</Text>
             ) : null}
           </View>
-          {/* Spacer balances the logo on the right */}
           {hasLogo && <View style={{ width: 68 }} />}
         </View>
 
         {/* ── Body ───────────────────────────────────────────────────────── */}
         <View style={S.body}>
-          {template.secciones.map((section) => (
-            <View key={section.id} style={S.section}>
-              {/* Section header */}
-              <View style={S.sectionHeader}>
-                <Text style={S.sectionTitle}>{section.nombre}</Text>
-              </View>
+          {template.secciones.map((section) => {
+            const layout = normalizeLayout(section)
+            const fieldMap = new Map(section.campos.map((f) => [f.id, f]))
 
-              {/* Fields grid */}
-              <View style={S.fieldsRow}>
-                {section.campos.map((field) => {
-                  const value = datos[field.id]
-                  const isImg = isBase64Signature(field, value)
-                  const isSig = isTextSignature(field)
-                  const isTabla = isTablaField(field)
-                  const full = needsFullWidth(field)
+            return (
+              <View key={section.id} style={S.section}>
+                {/* Section header */}
+                <View style={S.sectionHeader}>
+                  <Text style={S.sectionTitle}>{section.nombre}</Text>
+                </View>
 
-                  return (
-                    <View key={field.id} style={full ? S.fieldCellFull : S.fieldCell}>
-                      {isTabla ? (
-                        renderTablaField(field, value, { labelStyle: S.fieldLabel, theme })
-                      ) : (
-                        <>
-                          <Text style={S.fieldLabel}>{field.label}</Text>
-                          {isImg ? (
-                            <Image style={S.signatureImage} src={value} />
-                          ) : isSig ? (
-                            <Text style={S.signatureText}>
-                              {typeof value === 'string' && value ? value : '—'}
+                {/* Fields as table rows */}
+                {layout.length > 0 && (
+                  <View style={S.tableOuter}>
+                    {layout.map((row) => {
+                      const fields = row.campos
+                        .map((id) => fieldMap.get(id))
+                        .filter(Boolean) as NonNullable<ReturnType<typeof fieldMap.get>>[]
+
+                      if (fields.length === 0) return null
+
+                      // Encabezado rows span full width
+                      if (fields.length === 1 && fields[0].tipo === 'encabezado') {
+                        const field = fields[0]
+                        const nivel = field.nivelEncabezado ?? 2
+                        const fontSize = nivel === 1 ? 14 : nivel === 2 ? 12 : 10
+                        return (
+                          <View key={row.id} style={[S.tableRow, { paddingHorizontal: 8, paddingVertical: 6 }]}>
+                            <Text style={{ fontFamily: 'Helvetica-Bold', fontSize, color: '#111827' }}>
+                              {field.label}
                             </Text>
-                          ) : (
-                            <Text style={S.fieldValue}>
-                              {formatFieldValue(field, value) || '—'}
-                            </Text>
-                          )}
-                        </>
-                      )}
-                    </View>
-                  )
-                })}
+                          </View>
+                        )
+                      }
+
+                      const cellWidth = CONTENT_WIDTH / fields.length
+
+                      return (
+                        <View key={row.id} style={S.tableRow}>
+                          {fields.map((field, idx) => {
+                            const value = datos[field.id]
+                            const isImg = isBase64Signature(field, value)
+                            const isSig = isTextSignature(field)
+                            const isTabla = isTablaField(field)
+                            const isLast = idx === fields.length - 1
+
+                            const cellStyle = {
+                              width: cellWidth,
+                              paddingHorizontal: 8,
+                              paddingVertical: 6,
+                              borderRightWidth: isLast ? 0 : 0.5,
+                              borderRightColor: '#d1d5db',
+                              borderRightStyle: 'solid' as const,
+                            }
+
+                            if (field.tipo === 'encabezado') {
+                              const nivel = field.nivelEncabezado ?? 2
+                              const fontSize = nivel === 1 ? 14 : nivel === 2 ? 12 : 10
+                              return (
+                                <View key={field.id} style={cellStyle}>
+                                  <Text style={{ fontFamily: 'Helvetica-Bold', fontSize, color: '#111827' }}>
+                                    {field.label}
+                                  </Text>
+                                </View>
+                              )
+                            }
+
+                            if (field.tipo === 'checkbox') {
+                              const checked = Boolean(value)
+                              return (
+                                <View key={field.id} style={cellStyle}>
+                                  <Text style={S.fieldLabel}>{field.label}</Text>
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    {renderCheckboxMark(checked)}
+                                    <Text style={S.fieldValue}>{checked ? 'Sí' : 'No'}</Text>
+                                  </View>
+                                </View>
+                              )
+                            }
+
+                            if (field.tipo === 'texto-checkbox') {
+                              const tcValue = value as { checked?: boolean; text?: string } | undefined
+                              const checked = Boolean(tcValue?.checked)
+                              const text = tcValue?.text ?? ''
+                              return (
+                                <View key={field.id} style={cellStyle}>
+                                  <Text style={S.fieldLabel}>{field.label}</Text>
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    {renderCheckboxMark(checked)}
+                                    <Text style={S.fieldValue}>{text || '—'}</Text>
+                                  </View>
+                                </View>
+                              )
+                            }
+
+                            return (
+                              <View key={field.id} style={cellStyle}>
+                                {isTabla ? (
+                                  renderTablaField(field, value, { labelStyle: S.fieldLabel, theme })
+                                ) : (
+                                  <>
+                                    <Text style={S.fieldLabel}>{field.label}</Text>
+                                    {isImg ? (
+                                      <Image style={S.signatureImage} src={value} />
+                                    ) : isSig ? (
+                                      <Text style={S.signatureText}>
+                                        {typeof value === 'string' && value ? value : '—'}
+                                      </Text>
+                                    ) : (
+                                      <Text style={S.fieldValue}>
+                                        {formatFieldValue(field, value) || '—'}
+                                      </Text>
+                                    )}
+                                  </>
+                                )}
+                              </View>
+                            )
+                          })}
+                        </View>
+                      )
+                    })}
+                  </View>
+                )}
               </View>
-            </View>
-          ))}
+            )
+          })}
         </View>
 
         {/* ── Footer ─────────────────────────────────────────────────────── */}

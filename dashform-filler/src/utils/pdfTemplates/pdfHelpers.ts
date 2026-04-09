@@ -7,7 +7,16 @@ export function formatFieldValue(field: Field, value: unknown): string {
 
   switch (field.tipo) {
     case 'checkbox':
-      return value ? 'Sí' : 'No'
+      // Visual checkbox rendered separately — return empty
+      return ''
+
+    case 'texto-checkbox': {
+      // Return only the text portion; checkbox mark rendered separately
+      if (typeof value === 'object' && value !== null && 'text' in value) {
+        return String((value as { text: unknown }).text) || '—'
+      }
+      return '—'
+    }
 
     case 'fecha': {
       try {
@@ -28,6 +37,10 @@ export function formatFieldValue(field: Field, value: unknown): string {
 
     // Tabla is rendered specially — return empty so callers check isTablaField
     case 'tabla':
+      return ''
+
+    // Encabezado has no value
+    case 'encabezado':
       return ''
 
     default:
@@ -51,13 +64,14 @@ export function isTextSignature(field: Field): boolean {
   return field.tipo === 'firma-texto'
 }
 
-/** True when the field needs full-column width (signatures, long text, tables). */
+/** True when the field needs full-column width (signatures, long text, tables, encabezados). */
 export function needsFullWidth(field: Field): boolean {
   return (
     field.tipo === 'firma-digital' ||
     field.tipo === 'firma-texto' ||
     field.tipo === 'texto-expandible' ||
-    field.tipo === 'tabla'
+    field.tipo === 'tabla' ||
+    field.tipo === 'encabezado'
   )
 }
 
