@@ -19,8 +19,8 @@ export interface PdfTemplateProps {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const MARGIN = 30
-const CONTENT_WIDTH = 595 - MARGIN * 2 // 535pt
+const MARGIN = 54
+const CONTENT_WIDTH = 595 - MARGIN * 2 // 487pt
 const CELL_GAP = 8
 const DEFAULT_THEME = '#3b82f6'
 
@@ -42,12 +42,12 @@ export function ModernTemplate({ template, datos }: PdfTemplateProps) {
       flexDirection: 'row',
       alignItems: 'flex-start',
       marginBottom: 10,
-      gap: 12,
     },
     logo: {
       width: 56,
       height: 28,
       objectFit: 'contain',
+      marginRight: 12,
     },
     headerText: {
       flex: 1,
@@ -58,7 +58,7 @@ export function ModernTemplate({ template, datos }: PdfTemplateProps) {
       color: '#111827',
     },
     description: {
-      fontSize: 9,
+      fontSize: 10,
       color: '#6b7280',
       marginTop: 3,
     },
@@ -68,24 +68,25 @@ export function ModernTemplate({ template, datos }: PdfTemplateProps) {
       marginBottom: 20,
     },
     section: {
-      marginBottom: 18,
+      marginBottom: 20,
+      marginTop: 8,
     },
     sectionTitle: {
       fontFamily: 'Helvetica-Bold',
-      fontSize: 10,
+      fontSize: 13,
       color: theme,
       textTransform: 'uppercase',
       letterSpacing: 0.6,
       marginBottom: 8,
-      paddingBottom: 4,
-      borderBottomWidth: 0.5,
+      paddingBottom: 6,
+      borderBottomWidth: 1,
       borderBottomColor: '#e5e7eb',
       borderBottomStyle: 'solid',
     },
     fieldLabel: {
       fontFamily: 'Helvetica-Bold',
-      fontSize: 7.5,
-      color: '#9ca3af',
+      fontSize: 9,
+      color: '#4b5563',
       textTransform: 'uppercase',
       letterSpacing: 0.4,
       marginBottom: 2,
@@ -121,7 +122,13 @@ export function ModernTemplate({ template, datos }: PdfTemplateProps) {
   })
 
   return (
-    <Document>
+    <Document
+      title={template.nombre}
+      author={template.pdfConfig?.encabezado || 'DashForm'}
+      subject={template.descripcion || ''}
+      creator="DashForm"
+      producer="DashForm - react-pdf"
+    >
       <Page size="A4" style={S.page}>
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <View style={S.headerRow}>
@@ -151,7 +158,7 @@ export function ModernTemplate({ template, datos }: PdfTemplateProps) {
 
                 if (fields.length === 0) return null
 
-                // Encabezado solo ocupa el ancho completo
+                // Encabezado row spans full width
                 if (fields.length === 1 && fields[0].tipo === 'encabezado') {
                   const field = fields[0]
                   const nivel = field.nivelEncabezado ?? 2
@@ -169,18 +176,20 @@ export function ModernTemplate({ template, datos }: PdfTemplateProps) {
                 const cellWidth = (CONTENT_WIDTH - totalGap) / fields.length
 
                 return (
-                  <View key={row.id} style={{ flexDirection: 'row', gap: CELL_GAP, marginBottom: 9 }}>
-                    {fields.map((field) => {
+                  <View key={row.id} style={{ flexDirection: 'row', marginBottom: 10 }}>
+                    {fields.map((field, idx) => {
                       const value = datos[field.id]
                       const isImg = isBase64Signature(field, value)
                       const isSig = isTextSignature(field)
                       const isTabla = isTablaField(field)
+                      const isLast = idx === fields.length - 1
+                      const cellStyle = { width: cellWidth, ...(isLast ? {} : { marginRight: CELL_GAP }) }
 
                       if (field.tipo === 'encabezado') {
                         const nivel = field.nivelEncabezado ?? 2
                         const fontSize = nivel === 1 ? 14 : nivel === 2 ? 12 : 10
                         return (
-                          <View key={field.id} style={{ width: cellWidth }}>
+                          <View key={field.id} style={cellStyle}>
                             <Text style={{ fontFamily: 'Helvetica-Bold', fontSize, color: '#111827' }}>
                               {field.label}
                             </Text>
@@ -191,10 +200,10 @@ export function ModernTemplate({ template, datos }: PdfTemplateProps) {
                       if (field.tipo === 'checkbox') {
                         const checked = Boolean(value)
                         return (
-                          <View key={field.id} style={{ width: cellWidth }}>
+                          <View key={field.id} style={cellStyle}>
                             <Text style={S.fieldLabel}>{field.label}</Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                              {renderCheckboxMark(checked)}
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                              <View style={{ marginRight: 4 }}>{renderCheckboxMark(checked)}</View>
                               <Text style={S.fieldValue}>{checked ? 'Sí' : 'No'}</Text>
                             </View>
                           </View>
@@ -206,10 +215,10 @@ export function ModernTemplate({ template, datos }: PdfTemplateProps) {
                         const checked = Boolean(tcValue?.checked)
                         const text = tcValue?.text ?? ''
                         return (
-                          <View key={field.id} style={{ width: cellWidth }}>
+                          <View key={field.id} style={cellStyle}>
                             <Text style={S.fieldLabel}>{field.label}</Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                              {renderCheckboxMark(checked)}
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                              <View style={{ marginRight: 4 }}>{renderCheckboxMark(checked)}</View>
                               <Text style={S.fieldValue}>{text || '—'}</Text>
                             </View>
                           </View>
@@ -217,7 +226,7 @@ export function ModernTemplate({ template, datos }: PdfTemplateProps) {
                       }
 
                       return (
-                        <View key={field.id} style={{ width: cellWidth }}>
+                        <View key={field.id} style={cellStyle}>
                           {isTabla ? (
                             renderTablaField(field, value, { labelStyle: S.fieldLabel, theme })
                           ) : (

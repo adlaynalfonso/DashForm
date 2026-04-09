@@ -12,8 +12,8 @@ import { normalizeLayout } from '@/utils/layoutHelpers'
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const MARGIN = 30
-const CONTENT_WIDTH = 595 - MARGIN * 2 // 535pt
+const MARGIN = 50
+const CONTENT_WIDTH = 595 - MARGIN * 2 // 495pt
 const DEFAULT_THEME = '#1e3a8a'
 
 export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
@@ -64,17 +64,17 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
       paddingHorizontal: MARGIN,
     },
     section: {
-      marginBottom: 16,
+      marginBottom: 18,
     },
     sectionHeader: {
       backgroundColor: theme,
       paddingHorizontal: 8,
-      paddingVertical: 4,
+      paddingVertical: 6,
       marginBottom: 0,
     },
     sectionTitle: {
       fontFamily: 'Helvetica-Bold',
-      fontSize: 9,
+      fontSize: 10,
       color: '#ffffff',
       textTransform: 'uppercase',
       letterSpacing: 0.5,
@@ -94,8 +94,8 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
     },
     fieldLabel: {
       fontFamily: 'Helvetica-Bold',
-      fontSize: 7,
-      color: '#6b7280',
+      fontSize: 8.5,
+      color: '#374151',
       textTransform: 'uppercase',
       letterSpacing: 0.3,
       backgroundColor: '#f9fafb',
@@ -136,7 +136,13 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
   })
 
   return (
-    <Document>
+    <Document
+      title={template.nombre}
+      author={template.pdfConfig?.encabezado || 'DashForm'}
+      subject={template.descripcion || ''}
+      creator="DashForm"
+      producer="DashForm - react-pdf"
+    >
       <Page size="A4" style={S.page}>
         {/* ── Header band ────────────────────────────────────────────────── */}
         <View style={S.headerBand}>
@@ -179,7 +185,7 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
                         const nivel = field.nivelEncabezado ?? 2
                         const fontSize = nivel === 1 ? 14 : nivel === 2 ? 12 : 10
                         return (
-                          <View key={row.id} style={[S.tableRow, { paddingHorizontal: 8, paddingVertical: 6 }]}>
+                          <View key={row.id} style={[S.tableRow, { paddingHorizontal: 8, paddingVertical: 7 }]}>
                             <Text style={{ fontFamily: 'Helvetica-Bold', fontSize, color: '#111827' }}>
                               {field.label}
                             </Text>
@@ -201,7 +207,7 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
                             const cellStyle = {
                               width: cellWidth,
                               paddingHorizontal: 8,
-                              paddingVertical: 6,
+                              paddingVertical: 7,
                               borderRightWidth: isLast ? 0 : 0.5,
                               borderRightColor: '#d1d5db',
                               borderRightStyle: 'solid' as const,
@@ -224,8 +230,8 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
                               return (
                                 <View key={field.id} style={cellStyle}>
                                   <Text style={S.fieldLabel}>{field.label}</Text>
-                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                    {renderCheckboxMark(checked)}
+                                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <View style={{ marginRight: 4 }}>{renderCheckboxMark(checked)}</View>
                                     <Text style={S.fieldValue}>{checked ? 'Sí' : 'No'}</Text>
                                   </View>
                                 </View>
@@ -239,8 +245,8 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
                               return (
                                 <View key={field.id} style={cellStyle}>
                                   <Text style={S.fieldLabel}>{field.label}</Text>
-                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                    {renderCheckboxMark(checked)}
+                                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <View style={{ marginRight: 4 }}>{renderCheckboxMark(checked)}</View>
                                     <Text style={S.fieldValue}>{text || '—'}</Text>
                                   </View>
                                 </View>
