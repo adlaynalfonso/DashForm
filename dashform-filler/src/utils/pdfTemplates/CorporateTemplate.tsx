@@ -6,14 +6,15 @@ import {
   isTextSignature,
   todayLabel,
 } from './pdfHelpers'
-import { renderCheckboxMark } from './pdfCheckbox'
 import { isTablaField, renderTablaField } from './pdfTablaRenderer'
+import { InlineCheckbox, WriteLine, WriteBox } from './pdfComponents'
 import { normalizeLayout } from '@/utils/layoutHelpers'
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const MARGIN = 50
 const CONTENT_WIDTH = 595 - MARGIN * 2 // 495pt
+const CELL_GAP = 8
 const DEFAULT_THEME = '#1e3a8a'
 
 export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
@@ -37,35 +38,13 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
       alignItems: 'center',
       marginBottom: 20,
     },
-    logo: {
-      width: 56,
-      height: 28,
-      objectFit: 'contain',
-      marginRight: 12,
-    },
-    titleBlock: {
-      flex: 1,
-      alignItems: 'center',
-    },
-    title: {
-      fontFamily: 'Helvetica-Bold',
-      fontSize: 16,
-      color: '#ffffff',
-      textAlign: 'center',
-    },
-    description: {
-      fontSize: 9,
-      color: 'rgba(255,255,255,0.75)',
-      textAlign: 'center',
-      marginTop: 3,
-    },
+    logo: { width: 56, height: 28, objectFit: 'contain', marginRight: 12 },
+    titleBlock: { flex: 1, alignItems: 'center' },
+    title: { fontFamily: 'Helvetica-Bold', fontSize: 16, color: '#ffffff', textAlign: 'center' },
+    description: { fontSize: 9, color: 'rgba(255,255,255,0.75)', textAlign: 'center', marginTop: 3 },
     // ── Body ─────────────────────────────────────────────────────────────────
-    body: {
-      paddingHorizontal: MARGIN,
-    },
-    section: {
-      marginBottom: 18,
-    },
+    body: { paddingHorizontal: MARGIN },
+    section: { marginBottom: 18 },
     sectionHeader: {
       backgroundColor: theme,
       paddingHorizontal: 8,
@@ -79,33 +58,15 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
       textTransform: 'uppercase',
       letterSpacing: 0.5,
     },
-    // ── Table layout ──────────────────────────────────────────────────────────
-    tableOuter: {
-      borderWidth: 0.5,
-      borderColor: '#d1d5db',
-      borderStyle: 'solid',
-      borderTopWidth: 0,
-    },
-    tableRow: {
-      flexDirection: 'row',
-      borderTopWidth: 0.5,
-      borderTopColor: '#d1d5db',
-      borderTopStyle: 'solid',
-    },
+    sectionBody: { paddingHorizontal: 8, paddingTop: 6 },
     fieldLabel: {
       fontFamily: 'Helvetica-Bold',
       fontSize: 8.5,
       color: '#374151',
       textTransform: 'uppercase',
       letterSpacing: 0.3,
-      backgroundColor: '#f9fafb',
-      marginBottom: 3,
     },
-    fieldValue: {
-      fontSize: 10,
-      color: '#111827',
-      lineHeight: 1.4,
-    },
+    fieldValue: { fontSize: 10, color: '#111827', lineHeight: 1.4 },
     signatureImage: {
       width: 200,
       height: 60,
@@ -114,11 +75,7 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
       borderColor: '#e5e7eb',
       borderStyle: 'solid',
     },
-    signatureText: {
-      fontFamily: 'Helvetica-Oblique',
-      fontSize: 14,
-      color: '#111827',
-    },
+    signatureText: { fontFamily: 'Helvetica-Oblique', fontSize: 14, color: '#111827' },
     footer: {
       position: 'absolute',
       bottom: 16,
@@ -138,8 +95,8 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
   return (
     <Document
       title={template.nombre}
-      author={template.pdfConfig?.encabezado || 'DashForm'}
-      subject={template.descripcion || ''}
+      author="DashForm"
+      subject={template.descripcion ?? ''}
       creator="DashForm"
       producer="DashForm - react-pdf"
     >
@@ -149,9 +106,7 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
           {hasLogo && <Image style={S.logo} src={logoUrl} />}
           <View style={S.titleBlock}>
             <Text style={S.title}>{template.nombre}</Text>
-            {template.descripcion ? (
-              <Text style={S.description}>{template.descripcion}</Text>
-            ) : null}
+            {template.descripcion ? <Text style={S.description}>{template.descripcion}</Text> : null}
           </View>
           {hasLogo && <View style={{ width: 68 }} />}
         </View>
@@ -164,123 +119,168 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
 
             return (
               <View key={section.id} style={S.section}>
-                {/* Section header */}
+                {/* Section header band */}
                 <View style={S.sectionHeader}>
                   <Text style={S.sectionTitle}>{section.nombre}</Text>
                 </View>
 
-                {/* Fields as table rows */}
-                {layout.length > 0 && (
-                  <View style={S.tableOuter}>
-                    {layout.map((row) => {
-                      const fields = row.campos
-                        .map((id) => fieldMap.get(id))
-                        .filter(Boolean) as NonNullable<ReturnType<typeof fieldMap.get>>[]
+                {/* Fields — free-form, no table cells */}
+                <View style={S.sectionBody}>
+                  {layout.map((row) => {
+                    const fields = row.campos
+                      .map((id) => fieldMap.get(id))
+                      .filter(Boolean) as NonNullable<ReturnType<typeof fieldMap.get>>[]
 
-                      if (fields.length === 0) return null
+                    if (fields.length === 0) return null
 
-                      // Encabezado rows span full width
-                      if (fields.length === 1 && fields[0].tipo === 'encabezado') {
-                        const field = fields[0]
-                        const nivel = field.nivelEncabezado ?? 2
-                        const fontSize = nivel === 1 ? 14 : nivel === 2 ? 12 : 10
-                        return (
-                          <View key={row.id} style={[S.tableRow, { paddingHorizontal: 8, paddingVertical: 7 }]}>
-                            <Text style={{ fontFamily: 'Helvetica-Bold', fontSize, color: '#111827' }}>
-                              {field.label}
-                            </Text>
-                          </View>
-                        )
-                      }
-
-                      const cellWidth = CONTENT_WIDTH / fields.length
-
+                    // Encabezado solo en la fila → ancho completo
+                    if (fields.length === 1 && fields[0].tipo === 'encabezado') {
+                      const f = fields[0]
+                      const nivel = f.nivelEncabezado ?? 2
+                      const fs = nivel === 1 ? 14 : nivel === 2 ? 12 : 10
                       return (
-                        <View key={row.id} style={S.tableRow}>
-                          {fields.map((field, idx) => {
-                            const value = datos[field.id]
-                            const isImg = isBase64Signature(field, value)
-                            const isSig = isTextSignature(field)
-                            const isTabla = isTablaField(field)
-                            const isLast = idx === fields.length - 1
-
-                            const cellStyle = {
-                              width: cellWidth,
-                              paddingHorizontal: 8,
-                              paddingVertical: 7,
-                              borderRightWidth: isLast ? 0 : 0.5,
-                              borderRightColor: '#d1d5db',
-                              borderRightStyle: 'solid' as const,
-                            }
-
-                            if (field.tipo === 'encabezado') {
-                              const nivel = field.nivelEncabezado ?? 2
-                              const fontSize = nivel === 1 ? 14 : nivel === 2 ? 12 : 10
-                              return (
-                                <View key={field.id} style={cellStyle}>
-                                  <Text style={{ fontFamily: 'Helvetica-Bold', fontSize, color: '#111827' }}>
-                                    {field.label}
-                                  </Text>
-                                </View>
-                              )
-                            }
-
-                            if (field.tipo === 'checkbox') {
-                              const checked = Boolean(value)
-                              return (
-                                <View key={field.id} style={cellStyle}>
-                                  <Text style={S.fieldLabel}>{field.label}</Text>
-                                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <View style={{ marginRight: 4 }}>{renderCheckboxMark(checked)}</View>
-                                    <Text style={S.fieldValue}>{checked ? 'Sí' : 'No'}</Text>
-                                  </View>
-                                </View>
-                              )
-                            }
-
-                            if (field.tipo === 'texto-checkbox') {
-                              const tcValue = value as { checked?: boolean; text?: string } | undefined
-                              const checked = Boolean(tcValue?.checked)
-                              const text = tcValue?.text ?? ''
-                              return (
-                                <View key={field.id} style={cellStyle}>
-                                  <Text style={S.fieldLabel}>{field.label}</Text>
-                                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <View style={{ marginRight: 4 }}>{renderCheckboxMark(checked)}</View>
-                                    <Text style={S.fieldValue}>{text || '—'}</Text>
-                                  </View>
-                                </View>
-                              )
-                            }
-
-                            return (
-                              <View key={field.id} style={cellStyle}>
-                                {isTabla ? (
-                                  renderTablaField(field, value, { labelStyle: S.fieldLabel, theme })
-                                ) : (
-                                  <>
-                                    <Text style={S.fieldLabel}>{field.label}</Text>
-                                    {isImg ? (
-                                      <Image style={S.signatureImage} src={value} />
-                                    ) : isSig ? (
-                                      <Text style={S.signatureText}>
-                                        {typeof value === 'string' && value ? value : '—'}
-                                      </Text>
-                                    ) : (
-                                      <Text style={S.fieldValue}>
-                                        {formatFieldValue(field, value) || '—'}
-                                      </Text>
-                                    )}
-                                  </>
-                                )}
-                              </View>
-                            )
-                          })}
+                        <View key={row.id} style={{ marginBottom: 6 }}>
+                          <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: fs, color: '#111827' }}>
+                            {f.label}
+                          </Text>
                         </View>
                       )
-                    })}
-                  </View>
-                )}
+                    }
+
+                    const totalGap = CELL_GAP * (fields.length - 1)
+                    const cellWidth = (CONTENT_WIDTH - totalGap) / fields.length
+
+                    return (
+                      <View key={row.id} style={{ flexDirection: 'row', marginBottom: 9, alignItems: 'flex-start' }}>
+                        {fields.map((field, idx) => {
+                          const value = datos[field.id]
+                          const isLast = idx === fields.length - 1
+                          const base = {
+                            width: cellWidth,
+                            ...(isLast ? {} : { marginRight: CELL_GAP }),
+                          }
+
+                          if (field.tipo === 'encabezado') {
+                            const nivel = field.nivelEncabezado ?? 2
+                            const fs = nivel === 1 ? 14 : nivel === 2 ? 12 : 10
+                            return (
+                              <View key={field.id} style={base}>
+                                <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: fs }}>{field.label}</Text>
+                              </View>
+                            )
+                          }
+
+                          if (field.tipo === 'checkbox') {
+                            return (
+                              <View key={field.id} style={{ ...base, flexDirection: 'row', alignItems: 'center' }}>
+                                <InlineCheckbox
+                                  checked={Boolean(value)}
+                                  label={field.label}
+                                  fontSize={10}
+                                  boxColor={theme}
+                                />
+                              </View>
+                            )
+                          }
+
+                          if (field.tipo === 'texto-checkbox') {
+                            const tcVal = value as { checked?: boolean; text?: string } | undefined
+                            const checked = Boolean(tcVal?.checked)
+                            const text = tcVal?.text ?? ''
+                            return (
+                              <View key={field.id} style={{ ...base, flexDirection: 'row', alignItems: 'center' }}>
+                                <InlineCheckbox
+                                  checked={checked}
+                                  label={field.label + ':'}
+                                  fontSize={8.5}
+                                  boxColor={theme}
+                                />
+                                {text
+                                  ? <Text style={S.fieldValue}>{text}</Text>
+                                  : <WriteLine width="flex" />
+                                }
+                              </View>
+                            )
+                          }
+
+                          if ((field.tipo === 'radio' || field.tipo === 'select') && field.opciones?.length) {
+                            const selectedVal = typeof value === 'string' ? value : undefined
+                            return (
+                              <View key={field.id} style={base}>
+                                <Text style={S.fieldLabel}>{field.label}:</Text>
+                                <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 3 }}>
+                                  {field.opciones.map((opt) => (
+                                    <InlineCheckbox
+                                      key={opt}
+                                      checked={selectedVal === opt}
+                                      label={opt}
+                                      fontSize={10}
+                                      boxColor={theme}
+                                    />
+                                  ))}
+                                </View>
+                              </View>
+                            )
+                          }
+
+                          if (isBase64Signature(field, value)) {
+                            return (
+                              <View key={field.id} style={base}>
+                                <Text style={S.fieldLabel}>{field.label}</Text>
+                                <Image style={S.signatureImage} src={value} />
+                              </View>
+                            )
+                          }
+
+                          if (isTextSignature(field)) {
+                            return (
+                              <View key={field.id} style={base}>
+                                <Text style={S.fieldLabel}>{field.label}</Text>
+                                <Text style={S.signatureText}>
+                                  {typeof value === 'string' && value ? value : '—'}
+                                </Text>
+                              </View>
+                            )
+                          }
+
+                          if (isTablaField(field)) {
+                            return (
+                              <View key={field.id} style={base}>
+                                {renderTablaField(field, value, { labelStyle: S.fieldLabel, theme })}
+                              </View>
+                            )
+                          }
+
+                          if (field.tipo === 'texto-expandible') {
+                            return (
+                              <View key={field.id} style={base}>
+                                <Text style={[S.fieldLabel, { marginBottom: 3 }]}>{field.label}:</Text>
+                                <WriteBox height={50}>
+                                  {typeof value === 'string' && value.trim()
+                                    ? <Text style={S.fieldValue}>{value}</Text>
+                                    : null
+                                  }
+                                </WriteBox>
+                              </View>
+                            )
+                          }
+
+                          const displayVal = formatFieldValue(field, value)
+                          const isEmpty = displayVal === '—' || !displayVal
+                          return (
+                            <View key={field.id} style={{ ...base, flexDirection: 'row', alignItems: 'center' }}>
+                              <Text style={[S.fieldLabel, { marginRight: 4 }]}>{field.label}: </Text>
+                              {isEmpty
+                                ? <WriteLine width="flex" />
+                                : <Text style={S.fieldValue}>{displayVal}</Text>
+                              }
+                            </View>
+                          )
+                        })}
+                      </View>
+                    )
+                  })}
+                </View>
               </View>
             )
           })}
@@ -289,11 +289,7 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
         {/* ── Footer ─────────────────────────────────────────────────────── */}
         <View style={S.footer} fixed>
           <Text>{todayLabel()}</Text>
-          <Text
-            render={({ pageNumber, totalPages }) =>
-              `Página ${pageNumber} de ${totalPages}`
-            }
-          />
+          <Text render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`} />
         </View>
       </Page>
     </Document>
