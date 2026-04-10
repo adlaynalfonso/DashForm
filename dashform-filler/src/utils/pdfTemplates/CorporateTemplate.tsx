@@ -116,42 +116,37 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
           {template.secciones.map((section) => {
             const layout = normalizeLayout(section)
             const fieldMap = new Map(section.campos.map((f) => [f.id, f]))
+            const KEEP_TOGETHER = 4
+            const firstRows = layout.slice(0, Math.min(KEEP_TOGETHER, layout.length))
+            const remainingRows = layout.slice(Math.min(KEEP_TOGETHER, layout.length))
 
-            return (
-              <View key={section.id} style={S.section}>
-                {/* Section header band */}
-                <View style={S.sectionHeader}>
-                  <Text style={S.sectionTitle}>{section.nombre}</Text>
-                </View>
+            const renderRow = (row: (typeof layout)[number]) => {
+              const fields = row.campos
+                .map((id) => fieldMap.get(id))
+                .filter(Boolean) as NonNullable<ReturnType<typeof fieldMap.get>>[]
 
-                {/* Fields — free-form, no table cells */}
-                <View style={S.sectionBody}>
-                  {layout.map((row) => {
-                    const fields = row.campos
-                      .map((id) => fieldMap.get(id))
-                      .filter(Boolean) as NonNullable<ReturnType<typeof fieldMap.get>>[]
+              if (fields.length === 0) return null
 
-                    if (fields.length === 0) return null
+              // Encabezado solo en la fila → ancho completo
+              if (fields.length === 1 && fields[0].tipo === 'encabezado') {
+                const f = fields[0]
+                const nivel = f.nivelEncabezado ?? 2
+                const fs = nivel === 1 ? 14 : nivel === 2 ? 12 : 10
+                return (
+                  <View key={row.id} wrap={false} style={{ marginBottom: 6 }}>
+                    <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: fs, color: '#111827' }}>
+                      {f.label}
+                    </Text>
+                  </View>
+                )
+              }
 
-                    // Encabezado solo en la fila → ancho completo
-                    if (fields.length === 1 && fields[0].tipo === 'encabezado') {
-                      const f = fields[0]
-                      const nivel = f.nivelEncabezado ?? 2
-                      const fs = nivel === 1 ? 14 : nivel === 2 ? 12 : 10
-                      return (
-                        <View key={row.id} style={{ marginBottom: 6 }}>
-                          <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: fs, color: '#111827' }}>
-                            {f.label}
-                          </Text>
-                        </View>
-                      )
-                    }
+              const totalGap = CELL_GAP * (fields.length - 1)
+              const cellWidth = (CONTENT_WIDTH - totalGap) / fields.length
+              const hasExpandible = fields.some((f) => f.tipo === 'texto-expandible')
 
-                    const totalGap = CELL_GAP * (fields.length - 1)
-                    const cellWidth = (CONTENT_WIDTH - totalGap) / fields.length
-
-                    return (
-                      <View key={row.id} style={{ flexDirection: 'row', marginBottom: 9, alignItems: 'flex-start' }}>
+              return (
+                <View key={row.id} wrap={hasExpandible ? undefined : false} style={{ flexDirection: 'row', marginBottom: 9, alignItems: 'flex-start' }}>
                         {fields.map((field, idx) => {
                           const value = datos[field.id]
                           const isLast = idx === fields.length - 1
@@ -277,10 +272,27 @@ export function CorporateTemplate({ template, datos }: PdfTemplateProps) {
                             </View>
                           )
                         })}
-                      </View>
-                    )
-                  })}
+              </View>
+            )
+          }
+
+            return (
+              <View key={section.id} style={S.section}>
+                {/* Header band + primeras filas: nunca se parten entre páginas */}
+                <View wrap={false}>
+                  <View style={S.sectionHeader} minPresenceAhead={120}>
+                    <Text style={S.sectionTitle}>{section.nombre}</Text>
+                  </View>
+                  <View style={S.sectionBody}>
+                    {firstRows.map(renderRow)}
+                  </View>
                 </View>
+                {/* Resto de filas: pueden saltar de página normalmente */}
+                {remainingRows.length > 0 && (
+                  <View style={S.sectionBody}>
+                    {remainingRows.map(renderRow)}
+                  </View>
+                )}
               </View>
             )
           })}
