@@ -214,14 +214,16 @@ export function ModernTemplate({ template, datos }: PdfTemplateProps) {
                         )
                       }
 
-                      // firma-texto
+                      // firma-texto — línea siempre visible debajo del valor
                       if (isTextSignature(field)) {
+                        const sigText = typeof value === 'string' && value ? value : ' '
                         return (
                           <View key={field.id} style={base}>
                             <Text style={S.fieldLabel}>{field.label}</Text>
-                            <Text style={S.signatureText}>
-                              {typeof value === 'string' && value ? value : '—'}
-                            </Text>
+                            <View style={{ marginTop: 4 }}>
+                              <Text style={S.signatureText}>{sigText}</Text>
+                              <View style={{ borderBottomWidth: 0.5, borderBottomColor: '#000000', borderBottomStyle: 'solid' }} />
+                            </View>
                           </View>
                         )
                       }
@@ -250,16 +252,16 @@ export function ModernTemplate({ template, datos }: PdfTemplateProps) {
                         )
                       }
 
-                      // texto, email, telefono, numero, fecha → label + valor o línea
+                      // texto, email, telefono, numero, fecha → label + valor sobre línea (siempre visible)
                       const displayVal = formatFieldValue(field, value)
-                      const isEmpty = displayVal === '—' || !displayVal
+                      const displayText = displayVal !== '—' ? displayVal : ' '
                       return (
-                        <View key={field.id} style={{ ...base, flexDirection: 'row', alignItems: 'center' }}>
+                        <View key={field.id} style={{ ...base, flexDirection: 'row', alignItems: 'flex-end' }}>
                           <Text style={[S.fieldLabel, { marginRight: 4 }]}>{field.label}: </Text>
-                          {isEmpty
-                            ? <WriteLine width="flex" />
-                            : <Text style={S.fieldValue}>{displayVal}</Text>
-                          }
+                          <View style={{ flex: 1 }}>
+                            <Text style={S.fieldValue}>{displayText}</Text>
+                            <View style={{ borderBottomWidth: 0.5, borderBottomColor: '#000000', borderBottomStyle: 'solid' }} />
+                          </View>
                         </View>
                       )
                     })}
